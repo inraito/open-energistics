@@ -9,8 +9,8 @@ import net.minecraft.world.IBlockReader;
 
 import javax.annotation.Nullable;
 
-public class OCInterface extends Block {
-    public OCInterface() {
+public class OCInterfaceBlock extends Block {
+    public OCInterfaceBlock() {
         super(Properties.of(Material.METAL));
     }
 
@@ -18,5 +18,10 @@ public class OCInterface extends Block {
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
         return new OCInterfaceTileEntity();
+    }
+
+    @Override
+    public boolean hasTileEntity(BlockState state) {
+        return true;
     }
 }

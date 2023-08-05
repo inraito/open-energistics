@@ -12,10 +12,10 @@ public class BlockList {
         return BlockList.BLOCKS;
     }
 
-    public static final RegistryObject<OCInterface> ocInterface;
+    public static final RegistryObject<OCInterfaceBlock> ocInterface;
 
     static{
-        ocInterface = BLOCKS.register("oc_interface", OCInterface::new);
+        ocInterface = BLOCKS.register("oc_interface", OCInterfaceBlock::new);
     }
 
 

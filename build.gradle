@@ -22,8 +22,8 @@ apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
 version = '1.0'
-group = 'inraito.open_energistics' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'open_energistics'
+group = 'inraito.openerg' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'openerg'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
@@ -64,7 +64,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                open_energistics {
+                openerg {
                     source sourceSets.main
                 }
             }
@@ -86,7 +86,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                open_energistics {
+                openerg {
                     source sourceSets.main
                 }
             }
@@ -108,10 +108,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', 'open_energistics', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'openerg', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
-                open_energistics {
+                openerg {
                     source sourceSets.main
                 }
             }
