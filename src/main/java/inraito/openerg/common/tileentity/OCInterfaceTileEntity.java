@@ -1,6 +1,9 @@
 package inraito.openerg.common.tileentity;
 
 import appeng.api.networking.*;
+import appeng.api.networking.crafting.ICraftingPatternDetails;
+import appeng.api.networking.crafting.ICraftingProvider;
+import appeng.api.networking.crafting.ICraftingProviderHelper;
 import appeng.api.util.AECableType;
 import appeng.api.util.AEColor;
 import appeng.api.util.AEPartLocation;
@@ -8,36 +11,42 @@ import appeng.api.util.DimensionalCoord;
 import appeng.core.Api;
 import appeng.util.Platform;
 import inraito.openerg.common.item.ItemList;
+import li.cil.oc.api.Network;
+import li.cil.oc.api.network.Visibility;
+import li.cil.oc.api.prefab.TileEntityEnvironment;
 import net.minecraft.block.Blocks;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
-public class OCInterfaceTileEntity extends TileEntity implements IGridHost, IGridBlock {
+public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGridHost,
+        IGridBlock, ICraftingProvider {
     public OCInterfaceTileEntity() {
         super(TileEntityList.ocInterfaceTileEntity.get());
+        super.node = Network.newNode(this, Visibility.Network).
+                withComponent("oc_interface").create();
     }
 
-    private IGridNode node;
+    private IGridNode aeNode;
 
     @Nullable
     @Override
     public IGridNode getGridNode(@Nonnull AEPartLocation dir) {
-        if (this.node == null && Platform.isServer()) {
-            this.node = Api.instance().grid().createGridNode(this);
-            this.node.updateState();
+        if (this.aeNode == null && Platform.isServer()) {
+            this.aeNode = Api.instance().grid().createGridNode(this);
+            this.aeNode.updateState();
         }
-        return this.node;
+        return this.aeNode;
     }
 
     @Nonnull
     @Override
     public AECableType getCableConnectionType(@Nonnull AEPartLocation dir) {
-        return AECableType.COVERED;
+        return AECableType.GLASS;
     }
 
     @Override
@@ -99,5 +108,22 @@ public class OCInterfaceTileEntity extends TileEntity implements IGridHost, IGri
     @Override
     public ItemStack getMachineRepresentation() {
         return new ItemStack(ItemList.ocInterfaceItem.get());
+    }
+
+    @Override
+    public void provideCrafting(ICraftingProviderHelper craftingTracker) {
+        //TODO
+    }
+
+    @Override
+    public boolean pushPattern(ICraftingPatternDetails patternDetails, CraftingInventory table) {
+        //TODO
+        return false;
+    }
+
+    @Override
+    public boolean isBusy() {
+        //TODO
+        return false;
     }
 }

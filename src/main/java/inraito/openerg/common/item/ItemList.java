@@ -13,8 +13,10 @@ public class ItemList {
     }
 
     public static final RegistryObject<OCInterfaceItem> ocInterfaceItem;
+    public static final RegistryObject<CallbackMarker> callbackMarker;
 
     static{
         ocInterfaceItem = ITEMS.register("oc_interface", OCInterfaceItem::new);
+        callbackMarker = ITEMS.register("callback_marker", CallbackMarker::new);
     }
 }
