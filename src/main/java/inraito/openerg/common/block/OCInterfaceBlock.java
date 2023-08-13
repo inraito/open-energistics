@@ -4,10 +4,16 @@ import inraito.openerg.common.tileentity.OCInterfaceTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +34,13 @@ public class OCInterfaceBlock extends Block {
     }
 
     @Override
-    public void onPlace(BlockState pState, World pLevel, BlockPos pPos, BlockState pOldState, boolean pIsMoving) {
-        super.onPlace(pState, pLevel, pPos, pOldState, pIsMoving);
+    public ActionResultType use(BlockState pState, World pLevel, BlockPos pPos, PlayerEntity pPlayer, Hand pHand, BlockRayTraceResult pHit) {
+        if(!pLevel.isClientSide && pHand==Hand.MAIN_HAND){
+            OCInterfaceTileEntity tileEntity = ((OCInterfaceTileEntity) pLevel.getBlockEntity(pPos));
+            NetworkHooks.openGui(((ServerPlayerEntity) pPlayer), tileEntity, (packetBuffer)->{
+                //TODO
+            });
+        }
+        return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
     }
 }
