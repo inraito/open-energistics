@@ -44,10 +44,10 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     private static final String STORAGE_INVENTORY_KEY = "storage_inventory";
 
     //slot used to config this interface, i.e. using ae crafting patterns to add more recipes
-    ItemStackHandler configInventory = new ItemStackHandler(1);
+    public ItemStackHandler configInventory = new ItemStackHandler(1);
     //slots used to cache output(i/o all from the perspective of an ae network)
     //and input should not be send here, which is not similar to a me interface
-    ItemStackHandler storageInventory = new ItemStackHandler(27);
+    public ItemStackHandler storageInventory = new ItemStackHandler(27);
     public OCInterfaceTileEntity() {
         super(TileEntityList.ocInterfaceTileEntity.get());
         super.node = Network.newNode(this, Visibility.Network).
@@ -99,7 +99,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     @Nullable
     @Override
     public Container createMenu(int id, PlayerInventory inventory, PlayerEntity player) {
-        return new OCInterfaceContainer(id, this);
+        return new OCInterfaceContainer(id, this,player);
     }
 
     /*

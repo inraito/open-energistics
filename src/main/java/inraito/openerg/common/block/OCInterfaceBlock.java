@@ -41,6 +41,6 @@ public class OCInterfaceBlock extends Block {
                 //TODO
             });
         }
-        return super.use(pState, pLevel, pPos, pPlayer, pHand, pHit);
+        return ActionResultType.SUCCESS;
     }
 }
