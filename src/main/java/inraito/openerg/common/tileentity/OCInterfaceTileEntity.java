@@ -4,6 +4,8 @@ import appeng.api.networking.*;
 import appeng.api.networking.crafting.ICraftingPatternDetails;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.crafting.ICraftingProviderHelper;
+import appeng.api.networking.events.MENetworkCraftingPatternChange;
+import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.AECableType;
 import appeng.api.util.AEColor;
 import appeng.api.util.AEPartLocation;
@@ -15,6 +17,9 @@ import inraito.openerg.common.container.OCInterfaceContainer;
 import inraito.openerg.common.item.ItemList;
 import inraito.openerg.util.ItemHandlerHelper;
 import li.cil.oc.api.Network;
+import li.cil.oc.api.machine.Arguments;
+import li.cil.oc.api.machine.Callback;
+import li.cil.oc.api.machine.Context;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.TileEntityEnvironment;
 import net.minecraft.block.BlockState;
@@ -43,6 +48,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGridHost,
         IGridBlock, ICraftingProvider, INamedContainerProvider, ITickableTileEntity {
@@ -262,14 +268,22 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         for(int i=0;i<list.size();i++){
             CompoundNBT entry = list.getCompound(i);
             ItemStack stack = ItemStack.of(entry.getCompound("stack"));
-            Context context = new Context();
+            CraftingContext context = new CraftingContext();
             context.deserializeNBT(entry.getCompound("context"));
             this.craftingPatterns.put(stack, context);
         }
     }
 
-    private final Map<ItemStack, Context> craftingPatterns = new HashMap<>();
-    public static class Context implements INBTSerializable<CompoundNBT> {
+    private final Map<ItemStack, CraftingContext> craftingPatterns = new HashMap<>();
+    public static class CraftingContext implements INBTSerializable<CompoundNBT> {
+        String message;
+        public CraftingContext(){}
+
+        public CraftingContext(String message){
+            this.message = message;
+            this.empty = false;
+        }
+
         private boolean empty = true;
         public boolean isEmpty(){
             return this.empty;
@@ -278,21 +292,34 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         @Override
         public CompoundNBT serializeNBT() {
             CompoundNBT res = new CompoundNBT();
+            res.putBoolean("empty", empty);
             if(empty){
-                res.putBoolean("empty", true);
                 return res;
             }
-            //TODO
+            res.putString("message", this.message);
             return res;
         }
 
         @Override
         public void deserializeNBT(CompoundNBT nbt) {
             this.empty = nbt.getBoolean("empty");
-            if(this.empty){
-                return;
+            if(!this.empty){
+                this.message = nbt.getString("message");
             }
-            //TODO
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CraftingContext that = (CraftingContext) o;
+            if(this.empty&&that.empty) return true;
+            return Objects.equals(message, that.message);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(message, empty);
         }
     }
 
@@ -309,7 +336,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
 
     private final List<ItemStack> waitingToSend = new ArrayList<>();
     //this may not be '==' to any contexts in *craftingPatterns*.
-    private Context pendingContext = new Context();
+    private CraftingContext pendingContext = new CraftingContext();
     private void savePending(CompoundNBT nbt){
         ListNBT waitingStacks = new ListNBT();
         for(ItemStack stack:waitingToSend){
@@ -327,7 +354,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             ItemStack stack = ItemStack.of(waitingStacks.getCompound(i));
             this.waitingToSend.add(stack);
         }
-        this.pendingContext = new Context();
+        this.pendingContext = new CraftingContext();
         this.pendingContext.deserializeNBT(nbt.getCompound("pending_context"));
     }
 
@@ -337,9 +364,11 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             return false;
         }
         List<ItemStack> remaining = ItemHandlerHelper.pushAll(table, this.storageInventory);
+        CraftingContext context = this.craftingPatterns.get(this.cachedDetails.get(patternDetails));
         if(!remaining.isEmpty()){
             this.waitingToSend.addAll(remaining);
-            this.pendingContext = this.craftingPatterns.get(this.cachedDetails.get(patternDetails));
+            this.pendingContext = context;
+            return true;
         }
         return true;
     }
@@ -352,5 +381,59 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     /*
     -------------------------------------OpenComputers Component Callbacks------------------------------------------
      */
+
+    @Callback(doc="function(message:string):boolean --Register the pattern in the config slot with the given message, return true if succeed")
+    public Object[] registerPattern(Context context, Arguments arguments) throws Exception{
+        String message = arguments.checkString(0);
+        if(message.isEmpty()){
+            throw new IllegalArgumentException();
+        }
+        if(this.configInventory.getStackInSlot(0).isEmpty()){
+            return new Object[]{false, "config slot empty"};
+        }
+        if(this.craftingPatterns.values().stream()
+                .map((ctx)->ctx.message).collect(Collectors.toSet()).contains(message)){
+            return new Object[]{false, "message has been used"};
+        }
+        ItemStack pattern = this.configInventory.getStackInSlot(0);
+        CraftingContext craftingContext = new CraftingContext(message);
+        this.craftingPatterns.put(pattern, craftingContext);
+        this.aeNode.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.aeNode));
+        this.setChanged();
+        return new Object[]{true};
+    }
+
+    @Callback(doc="function():table --list all registered patterns, only indexes and messages are returned")
+    public Object[] listAllPatterns(Context context, Arguments arguments) throws Exception{
+        List<String> res = new ArrayList<>();
+        for(CraftingContext craftingContext : craftingPatterns.values()){
+            res.add(craftingContext.message);
+        }
+        return new Object[]{res};
+    }
+
+    @Callback(doc="function(message:string):table, table --get pattern details, output first, input follows")
+    public Object[] getPattern(Context context, Arguments arguments) throws Exception{
+        String msg = arguments.checkString(0);
+        Optional<Map.Entry<ItemStack, CraftingContext>> entry = craftingPatterns.entrySet()
+                .stream().filter((e)->e.getValue().message.equals(msg))
+                .findFirst();
+        if(!entry.isPresent()){
+            return new Object[]{null, "pattern not found"};
+        }
+        ItemStack stack = entry.get().getKey();
+        ICraftingPatternDetails details = Api.instance().crafting().decodePattern(stack, this.getLevel());
+        List<String> inputs = new ArrayList<>();
+        List<String> outputs = new ArrayList<>();
+        for(IAEItemStack aeStack : details.getInputs()){
+            String id = aeStack.getItem().getDescriptionId();
+            inputs.add(id);
+        }
+        for(IAEItemStack aeStack : details.getOutputs()){
+            String id = aeStack.getItem().getDescriptionId();
+            outputs.add(id);
+        }
+        return new Object[]{inputs, outputs};
+    }
 
 }
