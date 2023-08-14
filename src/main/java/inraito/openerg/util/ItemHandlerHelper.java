@@ -8,25 +8,25 @@ import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ItemHandlerHelper {
     public static List<ItemStack> pushAll(IInventory srcInventory, IItemHandlerModifiable dstItemHandler){
-        //TODO: just fucking insert everything from inventory into the itemHandler
-        //      then return those assholes that can't be inserted.
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        return null;
+        List<ItemStack> remaining = new ArrayList<>();
+        for(int i=0;i<srcInventory.getContainerSize();i++){
+            ItemStack toInsert = srcInventory.getItem(i).copy();
+            for(int j=0;j<dstItemHandler.getSlots();j++){
+                toInsert = dstItemHandler.insertItem(j, toInsert, false);
+                if(toInsert.isEmpty()){
+                    break;
+                }
+            }
+            if(!toInsert.isEmpty()){
+                remaining.add(toInsert);
+            }
+        }
+        return remaining;
     }
 
     public static void dropContents(IItemHandler handler, World world, Vector3d pos){

@@ -20,6 +20,7 @@ import li.cil.oc.api.Network;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.Packet;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.TileEntityEnvironment;
 import net.minecraft.block.BlockState;
@@ -41,6 +42,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -54,6 +56,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         IGridBlock, ICraftingProvider, INamedContainerProvider, ITickableTileEntity {
     private static final String CONFIG_INVENTORY_KEY = "config_inventory";
     private static final String STORAGE_INVENTORY_KEY = "storage_inventory";
+    private static final String BROADCAST_PORT_KEY = "broadcast_port";
 
     //slot used to config this interface, i.e. using ae crafting patterns to add more recipes
     public ItemStackHandler configInventory = new ItemStackHandler(1){
@@ -90,10 +93,9 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         return super.getCapability(cap, side);
     }
 
-    private static final String AE_NODE_COMPOUND_KEY = "ae_node";
-
     @Override
     public CompoundNBT save(CompoundNBT nbt) {
+        nbt.putInt(BROADCAST_PORT_KEY, this.port);
         nbt.put(CONFIG_INVENTORY_KEY, configInventory.serializeNBT());
         nbt.put(STORAGE_INVENTORY_KEY, storageInventory.serializeNBT());
         saveCraftingPatterns(nbt);
@@ -104,6 +106,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     @Override
     public void load(BlockState state, CompoundNBT nbt) {
         super.load(state, nbt);
+        this.port = nbt.getInt(BROADCAST_PORT_KEY);
         configInventory.deserializeNBT(nbt.getCompound(CONFIG_INVENTORY_KEY));
         storageInventory.deserializeNBT(nbt.getCompound(STORAGE_INVENTORY_KEY));
         loadCraftingPatterns(nbt);
@@ -140,8 +143,33 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
      */
 
     private boolean nodeUpdated = false;
+    private int count = 0;
     @Override
     public void tick() {
+        count = (count+1)%20;
+        if(!this.level.isClientSide && count==0 && !this.pendingContext.isEmpty()){
+            List<ItemStack> pending = new ArrayList<>();
+            for(ItemStack stack : this.waitingToSend){
+                ItemStack s = stack.copy();
+                for(int i=0;i<this.storageInventory.getSlots();i++){
+                    s = this.storageInventory.insertItem(i, s, false);
+                    if(stack.isEmpty()){
+                        break;
+                    }
+                }
+                if(!s.isEmpty()){
+                    pending.add(s);
+                }
+            }
+            if(pending.isEmpty()){
+                this.issueMessage(this.pendingContext);
+                this.pendingContext = new CraftingContext();
+                this.waitingToSend.clear();
+            }else{
+                this.waitingToSend.clear();
+                this.waitingToSend.addAll(pending);
+            }
+        }
         if(!nodeUpdated){
             this.getGridNode(AEPartLocation.INTERNAL);
             nodeUpdated = true;
@@ -323,6 +351,12 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         }
     }
 
+    private int port = 2048;
+    private void issueMessage(CraftingContext context){
+        Packet packet = Network.newPacket(this.node.address(), null, port, new Object[]{context.message});
+        this.node().network().sendToReachable(this.node(), "network.message", packet);
+    }
+
     private final Map<ICraftingPatternDetails, ItemStack> cachedDetails = new HashMap<>();
     @Override
     public void provideCrafting(ICraftingProviderHelper craftingTracker) {
@@ -370,6 +404,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             this.pendingContext = context;
             return true;
         }
+        this.issueMessage(context);
         return true;
     }
 
@@ -434,6 +469,13 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             outputs.add(id);
         }
         return new Object[]{inputs, outputs};
+    }
+
+    @Callback(doc="function(port:number):boolean --set broadcast port")
+    public Object[] setPort(Context context, Arguments arguments) throws Exception{
+        this.port = arguments.checkInteger(0);
+        this.setChanged();
+        return new Object[]{true};
     }
 
 }

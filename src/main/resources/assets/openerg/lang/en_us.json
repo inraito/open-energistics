@@ -1,4 +1,5 @@
 {
   "openerg.oc_interface.container.display_name": "OC Interface",
-  "block.openerg.oc_interface": "OC Interface"
+  "block.openerg.oc_interface": "OC Interface",
+  "itemGroup.open_energistics": "Open Energistics"
 }
