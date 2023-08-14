@@ -1,3 +1,4 @@
 {
-  "openerg.oc_interface.container.display_name": "OC Interface"
+  "openerg.oc_interface.container.display_name": "OC Interface",
+  "block.openerg.oc_interface": "OC Interface"
 }

@@ -37,10 +37,15 @@ public class OCInterfaceBlock extends Block {
     public ActionResultType use(BlockState pState, World pLevel, BlockPos pPos, PlayerEntity pPlayer, Hand pHand, BlockRayTraceResult pHit) {
         if(!pLevel.isClientSide && pHand==Hand.MAIN_HAND){
             OCInterfaceTileEntity tileEntity = ((OCInterfaceTileEntity) pLevel.getBlockEntity(pPos));
-            NetworkHooks.openGui(((ServerPlayerEntity) pPlayer), tileEntity, (packetBuffer)->{
-                //TODO
-            });
+            NetworkHooks.openGui(((ServerPlayerEntity) pPlayer), tileEntity, (packetBuffer)->{});
         }
         return ActionResultType.SUCCESS;
+    }
+
+    @Override
+    public void onRemove(BlockState pState, World pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+        OCInterfaceTileEntity tileEntity = ((OCInterfaceTileEntity) pLevel.getBlockEntity(pPos));
+        tileEntity.onRemove();
+        super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
     }
 }

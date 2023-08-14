@@ -1,5 +1,6 @@
 package inraito.openerg.common.container;
 
+import appeng.core.Api;
 import inraito.openerg.common.tileentity.OCInterfaceTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
@@ -18,7 +19,14 @@ public class OCInterfaceContainer extends Container {
     protected OCInterfaceContainer(int pContainerId) {
         super(ContainerList.ocInterfaceContainer.get(), pContainerId);
         Inventory inventory = new Inventory(64);
-        this.addSlot(new Slot(inventory,0,79,31- shift));
+        //only encoded patterns are accepted
+        Slot configSlot = new Slot(inventory,0,79,31- shift){
+            @Override
+            public boolean mayPlace(ItemStack pStack) {
+                return Api.instance().crafting().isEncodedPattern(pStack);
+            }
+        };
+        this.addSlot(configSlot);
         inventory = new Inventory(64);
         for(int i=0;i<9;i++){
             this.addSlot(new Slot(inventory,i,8+i*18,71 - shift));

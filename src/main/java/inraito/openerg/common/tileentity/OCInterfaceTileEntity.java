@@ -1,5 +1,6 @@
 package inraito.openerg.common.tileentity;
 
+import appeng.api.IAppEngApi;
 import appeng.api.networking.*;
 import appeng.api.networking.crafting.ICraftingPatternDetails;
 import appeng.api.networking.crafting.ICraftingProvider;
@@ -13,6 +14,7 @@ import appeng.util.Platform;
 import inraito.openerg.Lib;
 import inraito.openerg.common.container.OCInterfaceContainer;
 import inraito.openerg.common.item.ItemList;
+import inraito.openerg.util.ItemHandlerHelper;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.TileEntityEnvironment;
@@ -25,7 +27,10 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
@@ -39,12 +44,18 @@ import javax.annotation.Nullable;
 import java.util.EnumSet;
 
 public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGridHost,
-        IGridBlock, ICraftingProvider, INamedContainerProvider {
+        IGridBlock, ICraftingProvider, INamedContainerProvider, ITickableTileEntity {
     private static final String CONFIG_INVENTORY_KEY = "config_inventory";
     private static final String STORAGE_INVENTORY_KEY = "storage_inventory";
 
     //slot used to config this interface, i.e. using ae crafting patterns to add more recipes
-    public ItemStackHandler configInventory = new ItemStackHandler(1);
+    public ItemStackHandler configInventory = new ItemStackHandler(1){
+        @Override
+        public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+            //only encoded patterns are accepted
+            return Api.instance().crafting().isEncodedPattern(stack);
+        }
+    };
     //slots used to cache output(i/o all from the perspective of an ae network)
     //and input should not be send here, which is not similar to a me interface
     public ItemStackHandler storageInventory = new ItemStackHandler(27);
@@ -72,6 +83,8 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         return super.getCapability(cap, side);
     }
 
+    private static final String AE_NODE_COMPOUND_KEY = "ae_node";
+
     @Override
     public CompoundNBT save(CompoundNBT nbt) {
         nbt.put(CONFIG_INVENTORY_KEY, configInventory.serializeNBT());
@@ -84,6 +97,39 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         super.load(state, nbt);
         configInventory.deserializeNBT(nbt.getCompound(CONFIG_INVENTORY_KEY));
         storageInventory.deserializeNBT(nbt.getCompound(STORAGE_INVENTORY_KEY));
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        this.getGridNode(AEPartLocation.INTERNAL).destroy();
+    }
+
+    public void onRemove(){
+        this.getGridNode(AEPartLocation.INTERNAL).destroy();
+        //drop contents
+        BlockPos blockPos = this.getBlockPos();
+        Vector3d pos = new Vector3d(blockPos.getX()+0.5, blockPos.getY()+0.5, blockPos.getZ()+0.5);
+        ItemHandlerHelper.dropContents(this.configInventory, this.level, pos);
+        ItemHandlerHelper.dropContents(this.storageInventory, this.level, pos);
+    }
+
+    /*
+    -----------------------------------------------------Tick-------------------------------------------------------
+     */
+
+    private boolean nodeUpdated = false;
+    @Override
+    public void tick() {
+        if(!nodeUpdated){
+            this.getGridNode(AEPartLocation.INTERNAL);
+            nodeUpdated = true;
+        }
     }
 
     /*
