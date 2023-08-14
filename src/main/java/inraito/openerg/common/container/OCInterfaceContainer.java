@@ -11,7 +11,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
 public class OCInterfaceContainer extends Container {
-    private OCInterfaceTileEntity tileEntity;
     private final int shift = 27;
     /**
      * used only on client, presumably.
@@ -46,7 +45,6 @@ public class OCInterfaceContainer extends Container {
      */
     public OCInterfaceContainer(int pContainerId, OCInterfaceTileEntity tileEntity,PlayerEntity player) {
         super(ContainerList.ocInterfaceContainer.get(), pContainerId);
-        this.tileEntity = tileEntity;
         this.addSlot(new SlotItemHandler(tileEntity.configInventory,0,79,31 -shift));
         for(int i=0;i<9;i++){
             this.addSlot(new SlotItemHandler(tileEntity.storageInventory,i,8+i*18,71 - shift));
@@ -88,6 +86,26 @@ public class OCInterfaceContainer extends Container {
     }
     @Override
     public ItemStack quickMoveStack(PlayerEntity playerIn, int index) {
-        return ItemStack.EMPTY;
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            if (index < 28) {
+                if (!this.moveItemStackTo(itemstack1, 28, this.slots.size(), true)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!this.moveItemStackTo(itemstack1, 0, 28, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+        }
+
+        return itemstack;
     }
 }
