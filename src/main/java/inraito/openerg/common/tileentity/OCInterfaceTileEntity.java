@@ -1,6 +1,5 @@
 package inraito.openerg.common.tileentity;
 
-import appeng.api.IAppEngApi;
 import appeng.api.networking.*;
 import appeng.api.networking.crafting.ICraftingPatternDetails;
 import appeng.api.networking.crafting.ICraftingProvider;
@@ -27,6 +26,7 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -34,6 +34,7 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -41,7 +42,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.EnumSet;
+import java.util.*;
 
 public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGridHost,
         IGridBlock, ICraftingProvider, INamedContainerProvider, ITickableTileEntity {
@@ -57,7 +58,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         }
     };
     //slots used to cache output(i/o all from the perspective of an ae network)
-    //and input should not be send here, which is not similar to a me interface
+    //and input should not be send here, which is not similar to an me interface
     public ItemStackHandler storageInventory = new ItemStackHandler(27);
     public OCInterfaceTileEntity() {
         super(TileEntityList.ocInterfaceTileEntity.get());
@@ -89,6 +90,8 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     public CompoundNBT save(CompoundNBT nbt) {
         nbt.put(CONFIG_INVENTORY_KEY, configInventory.serializeNBT());
         nbt.put(STORAGE_INVENTORY_KEY, storageInventory.serializeNBT());
+        saveCraftingPatterns(nbt);
+        savePending(nbt);
         return super.save(nbt);
     }
 
@@ -97,11 +100,18 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         super.load(state, nbt);
         configInventory.deserializeNBT(nbt.getCompound(CONFIG_INVENTORY_KEY));
         storageInventory.deserializeNBT(nbt.getCompound(STORAGE_INVENTORY_KEY));
+        loadCraftingPatterns(nbt);
+        loadPending(nbt);
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
+    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
+        super.load(state, tag);
+    }
+
+    @Override
+    public CompoundNBT getUpdateTag() {
+        return this.save(new CompoundNBT());
     }
 
     @Override
@@ -234,21 +244,113 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     /*
      ----------------------------------------------------ICraftingProvider-------------------------------------------
      */
+    private void saveCraftingPatterns(CompoundNBT nbt){
+        ListNBT list = new ListNBT();
+        for(ItemStack stack : craftingPatterns.keySet()){
+            CompoundNBT entry = new CompoundNBT();
+            CompoundNBT stackCompound = new CompoundNBT();
+            stack.save(stackCompound);
+            entry.put("stack", stackCompound);
+            entry.put("context", craftingPatterns.get(stack).serializeNBT());
+            list.add(entry);
+        }
+        nbt.put("crafting_patterns", list);
+    }
 
+    private void loadCraftingPatterns(CompoundNBT nbt){
+        ListNBT list = ((ListNBT) nbt.get("crafting_patterns"));
+        for(int i=0;i<list.size();i++){
+            CompoundNBT entry = list.getCompound(i);
+            ItemStack stack = ItemStack.of(entry.getCompound("stack"));
+            Context context = new Context();
+            context.deserializeNBT(entry.getCompound("context"));
+            this.craftingPatterns.put(stack, context);
+        }
+    }
+
+    private final Map<ItemStack, Context> craftingPatterns = new HashMap<>();
+    public static class Context implements INBTSerializable<CompoundNBT> {
+        private boolean empty = true;
+        public boolean isEmpty(){
+            return this.empty;
+        }
+
+        @Override
+        public CompoundNBT serializeNBT() {
+            CompoundNBT res = new CompoundNBT();
+            if(empty){
+                res.putBoolean("empty", true);
+                return res;
+            }
+            //TODO
+            return res;
+        }
+
+        @Override
+        public void deserializeNBT(CompoundNBT nbt) {
+            this.empty = nbt.getBoolean("empty");
+            if(this.empty){
+                return;
+            }
+            //TODO
+        }
+    }
+
+    private final Map<ICraftingPatternDetails, ItemStack> cachedDetails = new HashMap<>();
     @Override
     public void provideCrafting(ICraftingProviderHelper craftingTracker) {
-        //TODO
+        this.cachedDetails.clear();
+        for(ItemStack stack : craftingPatterns.keySet()){
+            ICraftingPatternDetails details = Api.instance().crafting().decodePattern(stack, this.level);
+            cachedDetails.put(details, stack);
+            craftingTracker.addCraftingOption(this, details);
+        }
+    }
+
+    private final List<ItemStack> waitingToSend = new ArrayList<>();
+    //this may not be '==' to any contexts in *craftingPatterns*.
+    private Context pendingContext = new Context();
+    private void savePending(CompoundNBT nbt){
+        ListNBT waitingStacks = new ListNBT();
+        for(ItemStack stack:waitingToSend){
+            CompoundNBT stackCompound = new CompoundNBT();
+            stack.save(stackCompound);
+            waitingStacks.add(stackCompound);
+        }
+        nbt.put("waiting_stacks", waitingStacks);
+        nbt.put("pending_context", pendingContext.serializeNBT());
+    }
+
+    private void loadPending(CompoundNBT nbt){
+        ListNBT waitingStacks = ((ListNBT) nbt.get("waiting_stacks"));
+        for(int i=0;i<waitingStacks.size();i++){
+            ItemStack stack = ItemStack.of(waitingStacks.getCompound(i));
+            this.waitingToSend.add(stack);
+        }
+        this.pendingContext = new Context();
+        this.pendingContext.deserializeNBT(nbt.getCompound("pending_context"));
     }
 
     @Override
     public boolean pushPattern(ICraftingPatternDetails patternDetails, CraftingInventory table) {
-        //TODO
-        return false;
+        if(!cachedDetails.containsKey(patternDetails) || !waitingToSend.isEmpty()){
+            return false;
+        }
+        List<ItemStack> remaining = ItemHandlerHelper.pushAll(table, this.storageInventory);
+        if(!remaining.isEmpty()){
+            this.waitingToSend.addAll(remaining);
+            this.pendingContext = this.craftingPatterns.get(this.cachedDetails.get(patternDetails));
+        }
+        return true;
     }
 
     @Override
     public boolean isBusy() {
-        //TODO
-        return false;
+        return !this.waitingToSend.isEmpty();
     }
+
+    /*
+    -------------------------------------OpenComputers Component Callbacks------------------------------------------
+     */
+
 }
