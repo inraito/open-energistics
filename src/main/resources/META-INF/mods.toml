@@ -10,7 +10,7 @@ logoFile="logo.png"
 credits="Inspired by a couple of other mods, most notably OpenComputers."
 authors="inraito, GlassCabbage"
 description='''
-This mod adds an block that connect interfaces from AppliedEnergistics2 to computers from OpenComputers
+This mod adds add an OpenComputers 's version ME interface.
 '''
 
 [[dependencies.openerg]]
