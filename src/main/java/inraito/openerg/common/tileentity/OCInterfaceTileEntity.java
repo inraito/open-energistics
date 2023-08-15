@@ -418,7 +418,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     -------------------------------------OpenComputers Component Callbacks------------------------------------------
      */
 
-    @Callback(doc="function(message:string):boolean --Register the pattern in the config slot with the given message, return true if succeed")
+    @Callback(doc="function(message:string):boolean --register the pattern in the config slot with the given message, return true if succeed")
     public Object[] registerPattern(Context context, Arguments arguments) throws Exception{
         String message = arguments.checkString(0);
         if(message.isEmpty()){
@@ -442,7 +442,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         return new Object[]{true};
     }
 
-    @Callback(doc="function():table --list all registered patterns, only indexes and messages are returned")
+    @Callback(doc="function():table --list all registered patterns, only the registered messages are returned")
     public Object[] listAllPatterns(Context context, Arguments arguments) throws Exception{
         List<String> res = new ArrayList<>();
         for(CraftingContext craftingContext : craftingPatterns.values()){
@@ -472,7 +472,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             String id = aeStack.getItem().getDescriptionId();
             outputs.add(id);
         }
-        return new Object[]{inputs, outputs};
+        return new Object[]{outputs, inputs};
     }
 
     @Callback(doc="function(port:number):boolean --set broadcast port")
