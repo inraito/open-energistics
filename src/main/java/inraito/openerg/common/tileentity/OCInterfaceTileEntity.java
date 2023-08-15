@@ -13,6 +13,7 @@ import appeng.api.util.DimensionalCoord;
 import appeng.core.Api;
 import appeng.util.Platform;
 import inraito.openerg.Lib;
+import inraito.openerg.common.Config;
 import inraito.openerg.common.container.OCInterfaceContainer;
 import inraito.openerg.common.item.ItemList;
 import inraito.openerg.util.ItemHandlerHelper;
@@ -42,7 +43,6 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -162,7 +162,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
                 }
             }
             if(pending.isEmpty()){
-                this.issueMessage(this.pendingContext);
+                this.broadcastMessage(this.pendingContext);
                 this.pendingContext = new CraftingContext();
                 this.waitingToSend.clear();
             }else{
@@ -170,6 +170,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
                 this.waitingToSend.addAll(pending);
             }
         }
+        //initialize the ae node, this is here because it seems i can't do that in onLoad()
         if(!nodeUpdated){
             this.getGridNode(AEPartLocation.INTERNAL);
             nodeUpdated = true;
@@ -352,7 +353,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     }
 
     private int port = 2048;
-    private void issueMessage(CraftingContext context){
+    private void broadcastMessage(CraftingContext context){
         Packet packet = Network.newPacket(this.node.address(), null, port, new Object[]{context.message});
         this.node().network().sendToReachable(this.node(), "network.message", packet);
     }
@@ -404,7 +405,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             this.pendingContext = context;
             return true;
         }
-        this.issueMessage(context);
+        this.broadcastMessage(context);
         return true;
     }
 
@@ -429,6 +430,9 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         if(this.craftingPatterns.values().stream()
                 .map((ctx)->ctx.message).collect(Collectors.toSet()).contains(message)){
             return new Object[]{false, "message has been used"};
+        }
+        if(craftingPatterns.keySet().size()>=Config.MAXIMUM_PATTERNS.get()){
+            return new Object[]{false, "pattern number reach limit"};
         }
         ItemStack pattern = this.configInventory.getStackInSlot(0);
         CraftingContext craftingContext = new CraftingContext(message);
