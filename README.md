@@ -1,4 +1,5 @@
 # Open Energistics
+An minecraft forge mod for minecraft version 1.16.5.
 
 ## About
 This mod add an adaption of ME interface from applied energistics 2, named OCInterface.
@@ -9,6 +10,11 @@ and what's more, when patterns are used, it can broadcast a network packet on th
 
 Note that you don't need an adaptor to use this block, it can and probably always should 
 be directly connected to both Applied Energistics 2 network and the OpenComputers' network.
+
+This mod depends on Applied Energistics 2 and OpenComputers.  
+**See Also**:
+- https://github.com/AppliedEnergistics/Applied-Energistics-2
+- https://github.com/KosmosPrime/OpenComputers and https://github.com/MightyPirates/OpenComputers
 
 ## License
 * All code
