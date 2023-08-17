@@ -1,5 +1,5 @@
 # Open Energistics
-An minecraft forge mod for minecraft version 1.16.5.
+A minecraft forge mod for minecraft version 1.16.5.
 
 ## About
 This mod add an adaption of ME interface from applied energistics 2, named OCInterface.
