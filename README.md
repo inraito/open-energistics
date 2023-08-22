@@ -16,6 +16,9 @@ This mod depends on Applied Energistics 2 and OpenComputers.
 - https://github.com/AppliedEnergistics/Applied-Energistics-2
 - https://github.com/KosmosPrime/OpenComputers and https://github.com/MightyPirates/OpenComputers
 
+## Tutorial
+[Simple Tutorial](./tutorial/simple_tutorial.md)  
+
 ## License
 * All code
   - (c) 2023, inraito and GlassCabbage  
