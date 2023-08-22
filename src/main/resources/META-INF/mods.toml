@@ -4,7 +4,7 @@ license="MIT License for all code and CC BY-NC-SA 3.0 License for textures"
 issueTrackerURL="https://github.com/inraito/open-energistics/issues"
 [[mods]]
 modId="openerg"
-version="1.0.0"
+version="1.0.1"
 displayName="Open Energistics"
 logoFile="logo.png"
 credits="Inspired by a couple of other mods, most notably OpenComputers."

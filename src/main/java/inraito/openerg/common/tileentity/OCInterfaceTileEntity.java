@@ -482,4 +482,17 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         return new Object[]{true};
     }
 
+    @Callback(doc="function(message:string):boolean --delete registered pattern")
+    public Object[] deletePattern(Context context, Arguments arguments) throws Exception{
+        String msg = arguments.checkString(0);
+        Optional<ItemStack> optional = this.craftingPatterns.keySet().stream().filter(k->craftingPatterns.get(k)
+                .message.equals(msg)).findFirst();
+        if(!optional.isPresent()){
+            return new Object[]{false, "massage not registered"};
+        }
+        this.craftingPatterns.remove(optional.get());
+        this.aeNode.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.aeNode));
+        this.setChanged();
+        return new Object[]{true};
+    }
 }
