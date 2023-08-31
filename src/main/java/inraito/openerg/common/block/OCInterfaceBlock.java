@@ -13,13 +13,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ToolType;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 
 public class OCInterfaceBlock extends Block {
     public OCInterfaceBlock() {
-        super(Properties.of(Material.METAL));
+        super(Properties.of(Material.METAL).harvestLevel(1)
+                .harvestTool(ToolType.PICKAXE).strength(3.5F).lightLevel((state)-> 15));
     }
 
     @Nullable
