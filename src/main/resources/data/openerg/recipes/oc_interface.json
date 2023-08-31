@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "aMa",
+    "P#P",
+    "aMa"
+  ],
+  "key": {
+    "#": {
+      "item": "appliedenergistics2:interface"
+    },
+    "a": {
+      "item": "minecraft:air"
+    },
+    "M": {
+      "item": "opencomputers:chip1"
+    },
+    "P": {
+      "item": "opencomputers:printedcircuitboard"
+    }
+  },
+  "result": {
+    "item": "openerg:oc_interface",
+    "count": 1
+  }
+}
