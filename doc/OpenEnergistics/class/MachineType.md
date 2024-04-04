@@ -17,3 +17,7 @@ All operation on an actual machine should be done through its machine type. And 
 operations' machine type interface should look like `machine_type.op(machine:Machine, arg1, arg2, ...)`
 Inside the implementation, the op() method should check the metadata inside the machine object
 and then conduct the operation accordingly.
+
+In most cases, it's just a class with multiple getter methods.
+Take furnace as an example, you probably would have three methods:
+`getIngredientTarget()`, `getFuelTarget()` and `getProductTarget`.

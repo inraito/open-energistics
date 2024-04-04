@@ -17,7 +17,7 @@ framework or by easily extending the framework.
 ### Machine Allocation
 We want the crafting process allocating machines from a need-to-use
 basis. That is we only occupy a machine when we really need it, and
-when we don't need it, it could be use by other crafting process.
+when we don't need it, it could be used by other crafting process.
 
 ### AE2 Integration 
 We want OpenEnergistics to integrate AE2, allowing to use AE2 network

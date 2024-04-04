@@ -61,7 +61,7 @@ possibilities becomes extremely difficult. The simple recursive solution may not
 
 Therefore, as has been said above, default behaviour of the synthetic calculator is to simply block 
 those path. That's a fairly conservative solution to avoid infinite loop. And it's actually
-quite complicated to calculating a valid path containing ouroboros recipes, so i wouldn't 
+quite complicated to calculate a valid path containing ouroboros recipes, so i wouldn't 
 recommend it. But if you really want to use [OpenEnergistics] to handle it, you may achieve
 that by using custom hooks, but be careful for infinite loop.
 
