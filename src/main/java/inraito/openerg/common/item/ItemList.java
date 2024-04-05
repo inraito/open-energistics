@@ -14,9 +14,11 @@ public class ItemList {
 
     public static final RegistryObject<OCInterfaceItem> ocInterfaceItem;
     public static final RegistryObject<CallbackMarker> callbackMarker;
+    public static final RegistryObject<BlockControllerItem> blockControllerItem;
 
     static{
         ocInterfaceItem = ITEMS.register("oc_interface", OCInterfaceItem::new);
         callbackMarker = ITEMS.register("callback_marker", CallbackMarker::new);
+        blockControllerItem = ITEMS.register("block_controller", BlockControllerItem::new);
     }
 }
