@@ -1,6 +1,6 @@
 # Resource Manager(RM)
 
-This class is a singleton interface for handling stacked resources(including ItemStacks).
+RM is a singleton interface for handling stacked resources(including ItemStacks).
 By singleton we mean that for a open-energistics instance(system), it will have and only
 have a single RM. It covers the physical heterogeneity and provide a unified api for the
 instance to use.
@@ -21,12 +21,12 @@ not resources manager's. `count` is the number of available resources and lastly
 
 And RM exposes the following apis to outside users.
 
-`open(filter:ResFilter):ResHandler`:   
-`close(handler:ResHandler):int`  
-`count(handler:ResHandler):int`  
-`occupy(count:int):int`  
-`release(count:int):int`  
-`exploit(count:int, target:ResTarget):int`  
+`open(filter:ResFilter):ResHandle`:   
+`close(handle:ResHandle):int`  
+`count(handle:ResHandle):int`  
+`occupy(handle:ResHandle, count:int):int`  
+`release(handle:ResHandle, count:int):int`  
+`exploit(handle:ResHandle count:int, target:ResTarget):int`  
 
 `open()`creates an entry in this list, `close()` deletes the entry, `count()`
 returns the count cell, `occupy()` deduct the requested number on count and
@@ -37,11 +37,13 @@ And finally `exploit()` deduct the occupied cell and move the resources to where
 `open()`   
 RM analyzes the filter and searches all places within the system and likely, indexes them. 
 Then create an entry described above in the list. This operation may or may not be idempotent,
-that is, depending on the driver, an existent handler might be returned. If a new entry is created,
+that is, depending on the driver, an existent handle might be returned. If a new entry is created,
 occupied cell will be set to zero.
 
 `close()`  
-RM delete the entry from the list and free all indexes and data related to that entry.  
+RM delete the entry from the list and free all indexes and data related to that entry.
+It is prohibited to close an entry with non-zero occupied cell, so you would simply fail
+in this scenario.
 
 `count()`  
 RM calculated the number of this resource.

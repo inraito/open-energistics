@@ -18,8 +18,12 @@ And as you can see, it's literally the same as ItemHandler of forge.
 
 And apart from these methods, a storage system must also respond to echo messages, allowing 
 itself to be discovered by broadcasting. The responses returned could contain information
-needed by [ItemStackFilter driver](./driver/filter/ItemStackFIilter.md), which would help
-it to function without a registration mechanics.
+needed by [StorageSystemFilter driver](./driver/filter/StorageSystemFilter.md), which would help
+it to function without a registration mechanic.
 ---
+
+### Future Prospect
+Adding more efficient type of storage system. These storage systems should be more similar to
+database, instead of a giant chest.
 
 [Open Energistics]: ../../OpenEnergistics.md

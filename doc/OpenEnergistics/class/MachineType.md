@@ -19,5 +19,8 @@ Inside the implementation, the op() method should check the metadata inside the 
 and then conduct the operation accordingly.
 
 In most cases, it's just a class with multiple getter methods.
-Take furnace as an example, you probably would have three methods:
-`getIngredientTarget()`, `getFuelTarget()` and `getProductTarget`.
+Take furnace as an example, you could have these three methods:
+`getIngredientTarget()`, `getFuelTarget()` and `getProductTarget()`.
+It's a fairly lightweight design. But if you want more heavyweight ones,
+you may have `cookChicken()`, `makeCharcoal()` and so on.
+
