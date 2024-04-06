@@ -1,5 +1,5 @@
-modLoader="javafml"
-loaderVersion="[36,)"
+modLoader="scorge"
+loaderVersion="[3.1,)"
 license="MIT License for all code and CC BY-NC-SA 3.0 License for textures"
 issueTrackerURL="https://github.com/inraito/open-energistics/issues"
 [[mods]]
@@ -9,6 +9,7 @@ displayName="Open Energistics"
 logoFile="logo.png"
 credits="Inspired by a couple of other mods, most notably OpenComputers."
 authors="inraito, GlassCabbage"
+entryClass="inraito.openerg.OpenEnergistics"
 description='''
 This mod adds add an OpenComputers 's version ME interface.
 '''
