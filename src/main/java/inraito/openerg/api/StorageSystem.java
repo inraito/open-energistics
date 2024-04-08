@@ -22,7 +22,16 @@ public interface StorageSystem {
      * @param itemStack ItemStack to push
      * @return remainder
      */
-    ItemStack push(int slot, ItemStack itemStack);
+    default ItemStack push(int slot, ItemStack itemStack){
+        return this.push(slot, itemStack, false);
+    }
+
+    /**
+     * Same as {@link StorageSystem#push(int, ItemStack)}, but if atomic is true,
+     * the given itemStack will be pushed all or none, that is the returned stack
+     * will either be empty or be the very one that are passed in.
+     */
+    ItemStack push(int slot, ItemStack itemStack, boolean atomic);
 
     /**
      * Pop the ItemStack in the given slot

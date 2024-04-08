@@ -100,11 +100,24 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
     }
 
     @Override
-    public ItemStack push(int slot, ItemStack itemStack) {
+    public ItemStack push(int slot, ItemStack itemStack, boolean atomic) {
         Tuple3<Direction, Direction, Integer> tuple = this.mapping.get(slot);
         IItemHandler handler = this.getItemHandler(tuple._1(), tuple._2());
         try{
-            return handler.insertItem(slot, itemStack, false);
+            if(atomic){
+                ItemStack temp = handler.insertItem(slot, itemStack, true);
+                if(temp.isEmpty()){
+                    temp = handler.insertItem(slot, itemStack, false);
+                    if(!temp.isEmpty()){
+                        throw new IllegalStateException("unknown bug");
+                    }else{
+                        return temp;
+                    }
+                }
+                return itemStack;
+            }else {
+                return handler.insertItem(slot, itemStack, false);
+            }
         }catch (Exception e){
             return itemStack;
         }
@@ -145,7 +158,7 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
     ----------------------------------------------OpenComputers Component Callbacks------------------------------------
      */
 
-    @Callback(doc="function(index:int, relative:string, side:string, slot:int):boolean --map the given index in storage system to the given slot")
+    @Callback(doc="function(index:int, relative:string, side:string, slot:int):boolean -- map the given index in storage system to the given slot")
     public Object[] map(Context context, Arguments arguments) throws Exception{
         int index = arguments.checkInteger(0);
         Direction relative = Direction.byName(arguments.checkString(1));
@@ -156,16 +169,35 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
             return new Object[]{false};
         }
         this.mapping.put(index, tuple);
+        this.setChanged();
         return new Object[]{true};
     }
 
-    @Callback(doc="function(index:int):boolean --unmap the given index in storage system")
+    @Callback(doc="function(index:int):boolean -- unmap the given index in storage system")
     public Object[] unmap(Context context, Arguments arguments) throws Exception{
         int index = arguments.checkInteger(0);
         if(!this.mapping.containsKey(index)){
             return new Object[]{false};
         }
         this.mapping.remove(index);
+        this.setChanged();
         return new Object[]{true};
+    }
+
+    @Callback(doc="function():table -- get all mappings")
+    public Object[] getMapping(Context context, Arguments arguments) throws Exception{
+        Map<Integer, Map<String, Object>> res = new HashMap<>();
+        for(int i : this.mapping.keySet()){
+            Tuple3<Direction, Direction, Integer> tuple = this.mapping.get(i);
+            Direction relative = tuple._1();
+            Direction side = tuple._2();
+            int slot = tuple._3();
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("relative", relative);
+            entry.put("side", side);
+            entry.put("slot", slot);
+            res.put(i, entry);
+        }
+        return new Object[]{res};
     }
 }

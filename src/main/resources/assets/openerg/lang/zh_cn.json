@@ -1,5 +1,10 @@
 {
   "openerg.oc_interface.container.display_name": "OC接口",
+
   "block.openerg.oc_interface": "OC接口",
+  "block.openerg.block_controller": "方块控制器",
+
+  "item.openerg.me_switching_card": "ME交换卡",
+
   "itemGroup.open_energistics": "开放式能源"
 }

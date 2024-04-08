@@ -12,8 +12,8 @@ Methods described here should be interpreted as pseudo code(java style), not its
 And as you can see, it's literally the same as ItemHandler of forge.
 
 `int getSlotNum()`  
-`ItemStack push(int slot, ItemStack itemStack)`  
-`ItemStack pop(int slot, int num)`  
+`ItemStack push(int slot, ItemStack itemStack[, boolean atomic])`  
+`ItemStack pop(int slot, int num)` `num=-1` for pop all  
 `ItemStack_READ check(int slot)`  
 
 And apart from these methods, a storage system must also respond to echo messages, allowing 

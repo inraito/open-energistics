@@ -20,7 +20,7 @@ public class StorageSystemSender implements StorageSystem {
         this.environment = environment;
     }
 
-    Message response = null;
+    private Message response = null;
     public boolean onMessage(Message message){
         if(message.name().equals(RESPONSE_NAME)){
             this.response = message;
@@ -43,12 +43,12 @@ public class StorageSystemSender implements StorageSystem {
     }
 
     @Override
-    public ItemStack push(int slot, ItemStack itemStack) {
-        try {
+    public ItemStack push(int slot, ItemStack itemStack, boolean atomic) {
+        try{
             Node node = environment.node();
             environment.setSender(this);
             node.network().sendToAddress(node, address, REQUEST_NAME,
-                    PUSH, slot, itemStack);
+                    PUSH, slot, itemStack, atomic);
             return ((ItemStack) response.data()[0]);
         }catch (Exception e){
             return itemStack;

@@ -4,17 +4,13 @@ import inraito.openerg.api.StorageSystem;
 import inraito.openerg.common.tileentity.storage.StorageStaticLib;
 import inraito.openerg.common.tileentity.storage.StorageSystemReceiver;
 import inraito.openerg.common.tileentity.storage.StorageSystemSender;
-import li.cil.oc.api.Network;
 import li.cil.oc.api.network.Message;
-import li.cil.oc.api.network.Visibility;
 import li.cil.oc.api.prefab.TileEntityEnvironment;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntityType;
 
 public abstract class StorageSystemTileEntity extends TileEntityEnvironment
         implements StorageSystem {
-    protected final StorageSystemReceiver storageWrapper = new StorageSystemReceiver(this);
+    protected final StorageSystemReceiver storageReceiver = new StorageSystemReceiver(this);
 
     public StorageSystemTileEntity(TileEntityType<?> type) {
         super(type);
@@ -31,7 +27,7 @@ public abstract class StorageSystemTileEntity extends TileEntityEnvironment
 
     @Override
     public void onMessage(Message message) {
-        Object wrapperRes = this.storageWrapper.onMessage(message);
+        Object wrapperRes = this.storageReceiver.onMessage(message);
         if(wrapperRes!=null){
             this.node.network().sendToAddress(this.node,
                     message.source().address(),

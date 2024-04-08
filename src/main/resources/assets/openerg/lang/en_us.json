@@ -1,5 +1,10 @@
 {
   "openerg.oc_interface.container.display_name": "OC Interface",
+
   "block.openerg.oc_interface": "OC Interface",
+  "block.openerg.block_controller": "Block Controller",
+
+  "item.openerg.me_switching_card": "ME Switching Card",
+
   "itemGroup.open_energistics": "Open Energistics"
 }

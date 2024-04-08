@@ -1,5 +1,6 @@
 package inraito.openerg.common.block;
 
+import inraito.openerg.common.tileentity.BlockControllerTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
@@ -18,7 +19,7 @@ public class BlockControllerBlock extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return super.createTileEntity(state, world);
+        return new BlockControllerTileEntity();
     }
 
     @Override
