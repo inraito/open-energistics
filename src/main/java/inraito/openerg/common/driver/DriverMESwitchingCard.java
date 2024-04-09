@@ -1,6 +1,7 @@
 package inraito.openerg.common.driver;
 
 import inraito.openerg.common.item.ItemList;
+import inraito.openerg.util.NBT2Collection;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
@@ -9,11 +10,16 @@ import li.cil.oc.api.network.*;
 import li.cil.oc.api.prefab.AbstractManagedEnvironment;
 import li.cil.oc.api.prefab.DriverItem;
 import li.cil.oc.common.Slot;
+import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.NonNullList;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import static inraito.openerg.common.tileentity.storage.StorageStaticLib.*;
@@ -48,13 +54,13 @@ public class DriverMESwitchingCard extends DriverItem {
 
         @Override
         public void loadData(CompoundNBT nbt) {
+            super.loadData(nbt);
             ListNBT list = ((ListNBT) nbt.get("stack_data"));
             for(INBT inbt : list){
                 CompoundNBT item = ((CompoundNBT) inbt);
                 ItemStack itemStack = ItemStack.of(item);
                 this.stack.push(itemStack);
             }
-            super.loadData(nbt);
         }
 
         private Message response = null;
@@ -72,7 +78,7 @@ public class DriverMESwitchingCard extends DriverItem {
         @Callback(doc="function(addr:string, slot:int, num:int):boolean -- push the given number of items in the give slot of the given storage system into the card, all or none")
         public Object[] push(Context context, Arguments arguments) throws Exception{
             if(this.stack.size()>=MAX_SIZE){
-                throw new IllegalArgumentException("stack is full");
+                return new Object[]{null, "stack is full"};
             }
             try {
                 String address = arguments.checkString(0);
@@ -80,8 +86,11 @@ public class DriverMESwitchingCard extends DriverItem {
                 int num = arguments.checkInteger(2);
                 Node node = this.node();
                 node.network().sendToAddress(node, address, REQUEST_NAME, POP, slot, num);
-                ItemStack popped = ((ItemStack) response.data()[0]);
+                ItemStack popped = ((ItemStack) response.data()[0]).copy();
                 this.response = null;
+                if(popped.isEmpty()){
+                    return new Object[]{false};
+                }
                 this.stack.push(popped);
                 return new Object[]{true};
             }catch (Exception e){
@@ -92,15 +101,15 @@ public class DriverMESwitchingCard extends DriverItem {
         @Callback(doc="function(addr:string, slot:int):boolean -- pop the ItemStack at top to the give slot of the given storage system, all or none")
         public Object[] pop(Context context, Arguments arguments) throws Exception{
             if(this.stack.size()<=0){
-                throw new IllegalArgumentException("stack is empty");
+                return new Object[]{null, "stack is empty"};
             }
             try {
                 String address = arguments.checkString(0);
                 int slot = arguments.checkInteger(1);
                 Node node = this.node();
                 node.network().sendToAddress(node, address, REQUEST_NAME,
-                        PUSH, slot, this.stack.peek(), true);
-                ItemStack returned = ((ItemStack) this.response.data()[0]);
+                        PUSH, slot, this.stack.peek().copy(), true);
+                ItemStack returned = ((ItemStack) this.response.data()[0]).copy();
                 this.response = null;
                 if(returned.isEmpty()){
                     this.stack.pop();
@@ -113,6 +122,39 @@ public class DriverMESwitchingCard extends DriverItem {
             }
         }
 
+        @Callback(doc="function():table -- peek the ItemStack on the top")
+        public Object[] peekTop(Context context, Arguments arguments) throws Exception{
+            if(this.stack.size()<=0){
+                return new Object[]{null, "stack is empty"};
+            }
+            ItemStack top = this.stack.peek();
+            return new Object[]{toTable(top)};
+        }
+
+        @Callback(doc="function(addr:String, slot:int):table -- peek the ItemStack in a storage system")
+        public Object[] peek(Context context, Arguments arguments) throws Exception{
+            try {
+                String address = arguments.checkString(0);
+                int slot = arguments.checkInteger(1);
+                Node node = this.node();
+                node.network().sendToAddress(node, address, REQUEST_NAME,
+                        CHECK, slot);
+                ItemStack returned = ((ItemStack) this.response.data()[0]).copy();
+                this.response = null;
+                return new Object[]{toTable(returned)};
+            }catch (Exception e){
+                return new Object[]{null, "failed for unclassified reasons"};
+            }
+        }
+
+        private static Map<String, Object> toTable(ItemStack itemStack){
+            Map<String, Object> stackNBT = NBT2Collection.toMap(itemStack.getOrCreateTag());
+            Map<String, Object> res = new HashMap<>();
+            res.put("registry_name", itemStack.getItem().getRegistryName());
+            res.put("num", itemStack.getCount());
+            res.put("nbt", stackNBT);
+            return res;
+        }
 
     }
 

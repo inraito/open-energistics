@@ -101,6 +101,7 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
 
     @Override
     public ItemStack push(int slot, ItemStack itemStack, boolean atomic) {
+        itemStack = itemStack.copy();
         Tuple3<Direction, Direction, Integer> tuple = this.mapping.get(slot);
         IItemHandler handler = this.getItemHandler(tuple._1(), tuple._2());
         try{
@@ -128,7 +129,7 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         Tuple3<Direction, Direction, Integer> tuple = this.mapping.get(slot);
         IItemHandler handler = this.getItemHandler(tuple._1(), tuple._2());
         try{
-            return handler.extractItem(slot, num, false);
+            return handler.extractItem(slot, num, false).copy();
         }catch (Exception e){
             return ItemStack.EMPTY;
         }
