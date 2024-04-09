@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "LRL",
+    "MUM",
+    "LRL"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:hopper"
+    },
+    "M": {
+      "item": "appliedenergistics2:logic_processor"
+    },
+    "R": {
+      "item": "appliedenergistics2:red_glass_cable"
+    },
+    "U": {
+      "item": "opencomputers:inventorycontrollerupgrade"
+    }
+  },
+  "result": {
+    "item": "openerg:block_controller",
+    "count": 1
+  }
+}

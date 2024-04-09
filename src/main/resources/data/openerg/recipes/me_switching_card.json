@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "LTL",
+    "MUM",
+    "SBS"
+  ],
+  "key": {
+    "L": {
+      "item": "appliedenergistics2:sky_dust"
+    },
+    "M": {
+      "item": "appliedenergistics2:purified_fluix_crystal"
+    },
+    "S": {
+      "item": "appliedenergistics2:certus_quartz_dust"
+    },
+    "T": {
+      "item": "opencomputers:chip3"
+    },
+    "U": {
+      "item": "opencomputers:lancard"
+    },
+    "B": {
+      "item": "appliedenergistics2:engineering_processor"
+    }
+  },
+  "result": {
+    "item": "openerg:me_switching_card",
+    "count": 1
+  }
+}

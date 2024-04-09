@@ -1,0 +1,6 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "openerg:item/me_switching_card"
+  }
+}

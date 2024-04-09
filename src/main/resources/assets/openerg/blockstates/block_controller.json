@@ -1,0 +1,5 @@
+ {
+   "variants": {
+     "": { "model": "openerg:block/block_controller" }
+   }
+ }

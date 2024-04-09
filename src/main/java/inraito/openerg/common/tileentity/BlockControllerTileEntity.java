@@ -106,9 +106,9 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         IItemHandler handler = this.getItemHandler(tuple._1(), tuple._2());
         try{
             if(atomic){
-                ItemStack temp = handler.insertItem(slot, itemStack, true);
+                ItemStack temp = handler.insertItem(tuple._3(), itemStack, true);
                 if(temp.isEmpty()){
-                    temp = handler.insertItem(slot, itemStack, false);
+                    temp = handler.insertItem(tuple._3(), itemStack, false);
                     if(!temp.isEmpty()){
                         throw new IllegalStateException("unknown bug");
                     }else{
@@ -117,7 +117,7 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
                 }
                 return itemStack;
             }else {
-                return handler.insertItem(slot, itemStack, false);
+                return handler.insertItem(tuple._3(), itemStack, false);
             }
         }catch (Exception e){
             return itemStack;
@@ -129,7 +129,7 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         Tuple3<Direction, Direction, Integer> tuple = this.mapping.get(slot);
         IItemHandler handler = this.getItemHandler(tuple._1(), tuple._2());
         try{
-            return handler.extractItem(slot, num, false).copy();
+            return handler.extractItem(tuple._3(), num, false).copy();
         }catch (Exception e){
             return ItemStack.EMPTY;
         }
@@ -140,7 +140,7 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         Tuple3<Direction, Direction, Integer> tuple = this.mapping.get(slot);
         IItemHandler handler = this.getItemHandler(tuple._1(), tuple._2());
         try{
-            return handler.getStackInSlot(slot).copy();
+            return handler.getStackInSlot(tuple._3()).copy();
         }catch (Exception e){
             return ItemStack.EMPTY;
         }
