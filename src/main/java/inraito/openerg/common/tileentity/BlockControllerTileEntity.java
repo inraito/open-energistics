@@ -1,5 +1,6 @@
 package inraito.openerg.common.tileentity;
 
+import li.cil.oc.api.API;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
@@ -39,7 +40,6 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
 
     @Override
     public CompoundNBT save(CompoundNBT nbt) {
-        super.save(nbt);
         ListNBT list = new ListNBT();
         for(Map.Entry<Integer, Tuple3<Direction, Direction, Integer>> entry : mapping.entrySet()){
             CompoundNBT c = new CompoundNBT();
@@ -52,13 +52,16 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
             list.add(c);
         }
         nbt.put("entries", list);
-        return nbt;
+        return super.save(nbt);
     }
 
     @Override
     public void load(BlockState state, CompoundNBT nbt) {
         super.load(state, nbt);
         ListNBT list = ((ListNBT) nbt.get("entries"));
+        if(getLevel()!=null && getLevel().isClientSide){
+            return;
+        }
         for(INBT element : list){
             CompoundNBT c = ((CompoundNBT) element);
             Integer index = c.getInt("index");
@@ -70,13 +73,31 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         }
     }
 
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if(node!=null){
+            node.remove();
+        }
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        if(node!=null){
+            node.remove();
+        }
+    }
+
     /*
     ---------------------------------------------------------Tick------------------------------------------------------
      */
 
     @Override
     public void tick() {
-
+        if (node != null && node.network() == null) {
+            API.network.joinOrCreateNetwork(this);
+        }
     }
 
     /*
@@ -87,7 +108,7 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         try {
             BlockPos pos = this.getBlockPos().relative(relative);
             TileEntity tileEntity = this.level.getBlockEntity(pos);
-            LazyOptional<IItemHandler> handler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY);
+            LazyOptional<IItemHandler> handler = tileEntity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side);
             return handler.resolve().get();
         }catch (Exception e){
             return null;

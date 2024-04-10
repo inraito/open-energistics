@@ -17,6 +17,7 @@ import inraito.openerg.common.Config;
 import inraito.openerg.common.container.OCInterfaceContainer;
 import inraito.openerg.common.item.ItemList;
 import inraito.openerg.util.ItemHandlerHelper;
+import li.cil.oc.api.API;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
@@ -127,6 +128,9 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         this.getGridNode(AEPartLocation.INTERNAL).destroy();
+        if(node!=null){
+            node.remove();
+        }
     }
 
     public void onRemove(){
@@ -138,6 +142,14 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         ItemHandlerHelper.dropContents(this.storageInventory, this.level, pos);
     }
 
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if(node!=null){
+            node.remove();
+        }
+    }
+
     /*
     -----------------------------------------------------Tick-------------------------------------------------------
      */
@@ -146,6 +158,9 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     private int count = 0;
     @Override
     public void tick() {
+        if (node != null && node.network() == null) {
+            API.network.joinOrCreateNetwork(this);
+        }
         count = (count+1)%20;
         if(!this.level.isClientSide && count==0 && !this.pendingContext.isEmpty()){
             List<ItemStack> pending = new ArrayList<>();

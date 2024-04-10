@@ -2,14 +2,7 @@
 A minecraft forge mod for minecraft version 1.16.5.
 
 ## About
-This mod add an adaption of ME interface from applied energistics 2, named OCInterface.
-It basically do the same thing as the ME interface but with some slight differences.
-It permits more encoded patterns, it can be configured using computers from OpenComputers,
-and what's more, when patterns are used, it can broadcast a network packet on the network
-(OpenComputers'), if properly configured.
-
-Note that you don't need an adaptor to use this block, it can and probably always should 
-be directly connected to both Applied Energistics 2 network and the OpenComputers' network.
+This mod add some useful component for oc computers to use.
 
 This mod depends on Applied Energistics 2 and OpenComputers.  
 **See Also**:
@@ -17,7 +10,8 @@ This mod depends on Applied Energistics 2 and OpenComputers.
 - https://github.com/KosmosPrime/OpenComputers and https://github.com/MightyPirates/OpenComputers
 
 ## Tutorial
-[Simple Tutorial](./tutorial/simple_tutorial.md)  
+[OC Interface](./tutorial/v1.0.0/tutorial.md)  
+[ME Switching Card and Block Controller](./tutorial/v1.1.0/tutorial.md)
 
 ## License
 * All code
