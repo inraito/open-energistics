@@ -11,7 +11,7 @@ credits="Inspired by a couple of other mods, most notably OpenComputers and Appl
 authors="inraito, GlassCabbage"
 entryClass="inraito.openerg.OpenEnergistics"
 description='''
-This mod add some useful component for oc computers to use.
+This mod add some useful components for oc computers to use.
 '''
 
 [[dependencies.openerg]]

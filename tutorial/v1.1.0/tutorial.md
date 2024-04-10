@@ -32,7 +32,7 @@ indicates the bottom side of the upper block, finally the 1 means the second slo
 The six possible strings are `{"up", "down", "west", "east", "south", "north"}`.
 
 ![](4.png)  
-Here's what's inside the chest now.
+Here's what's inside the chest now.  
 ![](5.png)  
 
 Now we use the switching card to manipulate this chest.  
@@ -42,14 +42,14 @@ First we push 32 items from index 0 into the card.
 And we can see that 32 oak planks do disappeared.  
 ![](7.png)  
 
-Try peeking the top.
+Try peeking the top.  
 ![](8.png)
 
 Then let's pop it out.  
 ![](9.png)  
 ![](10.png)  
 
-And try peeking it.
+And try peeking it.  
 ![](11.png)
 
 And that's all. For more detailed behaviour, check the doc plz.

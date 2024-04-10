@@ -2,7 +2,7 @@
 A minecraft forge mod for minecraft version 1.16.5.
 
 ## About
-This mod add some useful component for oc computers to use.
+This mod add some useful components for oc computers to use.
 
 This mod depends on Applied Energistics 2 and OpenComputers.  
 **See Also**:
