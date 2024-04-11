@@ -95,6 +95,11 @@ public class IndexMapOnFS {
         }
     }
 
+    public static boolean containsKey(FileSystem fs, int key){
+        //TODO: remove the redundant read.
+        return get(fs, key) != null;
+    }
+
     public static void remove(FileSystem fs, int key){
         String path = parsePath(key);
         int index = path.lastIndexOf(DELIMITER);

@@ -66,10 +66,16 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             //only encoded patterns are accepted
             return Api.instance().crafting().isEncodedPattern(stack);
         }
+
+        @Override
+        protected void onContentsChanged(int slot) {
+            super.onContentsChanged(slot);
+            OCInterfaceTileEntity.this.setChanged();
+        }
     };
     //slots used to cache output(i/o all from the perspective of an ae network)
     //and input should not be send here, which is not similar to an me interface
-    public ItemStackHandler storageInventory = new ItemStackHandler(27);
+    public final ItemStackHandler storageInventory = new ItemStackHandler(27);
     public OCInterfaceTileEntity() {
         super(TileEntityList.ocInterfaceTileEntity.get());
         super.node = Network.newNode(this, Visibility.Network).
