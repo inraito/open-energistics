@@ -133,7 +133,10 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
-        this.getGridNode(AEPartLocation.INTERNAL).destroy();
+        IGridNode node1 = this.getGridNode(AEPartLocation.INTERNAL);
+        if (node1 != null){
+            node1.destroy();
+        }
         if(node!=null){
             node.remove();
         }

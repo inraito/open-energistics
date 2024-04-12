@@ -1,7 +1,7 @@
 package inraito.openerg.util;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.fs.Handle;
 import li.cil.oc.api.fs.Mode;
@@ -46,7 +46,7 @@ public class IndexMapOnFS {
             handle.read(data);
             handle.close();
             String str = new String(data, 0, MAX_TUPLE_LENGTH, StandardCharsets.UTF_8);
-            JsonObject obj = new Gson().fromJson(str, JsonObject.class);
+            JsonObject obj = new JsonParser().parse(str.trim()).getAsJsonObject();
             return fromJson(obj);
         } catch (IOException | RuntimeException e) {
             return null;
@@ -66,7 +66,7 @@ public class IndexMapOnFS {
         if(index==-1){
             throw new IllegalArgumentException("illegal path " + path);
         }
-        if(index==0 || checkDirectory(fs, path.substring(0, index-1))){
+        if(index==0 || checkDirectory(fs, path.substring(0, index))){
             if(fs.exists(path)){
                 return fs.isDirectory(path);
             }else{
@@ -80,7 +80,7 @@ public class IndexMapOnFS {
     public static boolean put(FileSystem fs, int key, Tuple3<Direction, Direction, Integer> value){
         String path = parsePath(key);
         int index = path.lastIndexOf(DELIMITER);
-        if(!checkDirectory(fs, path.substring(0, index-1)) || fs.isDirectory(path)){
+        if(!checkDirectory(fs, path.substring(0, index)) || fs.isDirectory(path)){
             return false;
         }
         try {
@@ -103,7 +103,7 @@ public class IndexMapOnFS {
     public static void remove(FileSystem fs, int key){
         String path = parsePath(key);
         int index = path.lastIndexOf(DELIMITER);
-        if(!checkDirectory(fs, path.substring(0, index-1)) || fs.isDirectory(path) || !fs.exists(path)){
+        if(!checkDirectory(fs, path.substring(0, index)) || fs.isDirectory(path) || !fs.exists(path)){
             return;
         }
         fs.delete(path);

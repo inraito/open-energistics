@@ -1,6 +1,8 @@
 package inraito.openerg.common.tileentity;
 
+import appeng.api.util.AEPartLocation;
 import inraito.openerg.util.IndexMapOnFS;
+import inraito.openerg.util.ItemHandlerHelper;
 import li.cil.oc.api.API;
 import li.cil.oc.api.fs.FileSystem;
 import li.cil.oc.api.Network;
@@ -20,6 +22,7 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -50,10 +53,45 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         protected void onContentsChanged(int slot) {
             super.onContentsChanged(slot);
             BlockControllerTileEntity.this.setChanged();
-            if(this.getStackInSlot(0).isEmpty()){
+        }
+
+        @Nonnull
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            ItemStack stack = super.extractItem(slot, amount, simulate);
+            if(!stack.isEmpty()&&BlockControllerTileEntity.this.environment!=null){
                 BlockControllerTileEntity.this.environment.node().remove();
+                CompoundNBT tag = DriverFileSystem$.MODULE$.dataTag(stack);
+                BlockControllerTileEntity.this.environment.saveData(tag);
                 BlockControllerTileEntity.this.environment = null;
             }
+            return stack;
+        }
+        
+        @Override
+        public CompoundNBT serializeNBT() {
+            ItemStack stack = this.getStackInSlot(0);
+            if(!stack.isEmpty()){
+                CompoundNBT tag = DriverFileSystem$.MODULE$.dataTag(stack);
+                BlockControllerTileEntity.this.environment.saveData(tag);
+            }
+            return super.serializeNBT();
+        }
+
+        @Override
+        public void deserializeNBT(CompoundNBT nbt) {
+            super.deserializeNBT(nbt);
+            ItemStack stack = this.getStackInSlot(0);
+            if(!stack.isEmpty()){
+                BlockControllerTileEntity.this.environment = ((li.cil.oc.server.component.FileSystem) DriverFileSystem$.
+                        MODULE$.createEnvironment(stack, BlockControllerTileEntity.this));
+            }
+        }
+
+        @Override
+        public int getSlotLimit(int slot)
+        {
+            return 1;
         }
     };
 
@@ -131,10 +169,12 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         if (node != null && node.network() == null) {
             API.network.joinOrCreateNetwork(this);
         }
-        if(this.environment == null && !this.fsSlot.getStackInSlot(0).isEmpty()){
-            this.environment = ((li.cil.oc.server.component.FileSystem)
-                    DriverFileSystem$.MODULE$.createEnvironment(this.fsSlot.getStackInSlot(0), this));
-            this.node.connect(this.environment.node());
+        ItemStack stack = this.fsSlot.getStackInSlot(0);
+        if(BlockControllerTileEntity.this.environment == null && !stack.isEmpty()){
+            BlockControllerTileEntity.this.environment = ((li.cil.oc.server.component.FileSystem)
+                    DriverFileSystem$.MODULE$.createEnvironment(stack, BlockControllerTileEntity.this));
+            environment.loadData(DriverFileSystem$.MODULE$.dataTag(stack));
+            BlockControllerTileEntity.this.node.connect(BlockControllerTileEntity.this.environment.node());
         }
     }
 
@@ -288,5 +328,11 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
     @Override
     public void markChanged() {
         this.setChanged();
+    }
+
+    public void onRemove(){
+        BlockPos blockPos = this.getBlockPos();
+        Vector3d pos = new Vector3d(blockPos.getX()+0.5, blockPos.getY()+0.5, blockPos.getZ()+0.5);
+        ItemHandlerHelper.dropContents(this.fsSlot, this.level, pos);
     }
 }
