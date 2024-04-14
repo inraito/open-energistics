@@ -1,6 +1,8 @@
 package inraito.openerg.common.tileentity;
 
 import appeng.api.util.AEPartLocation;
+import inraito.openerg.common.block.BlockControllerBlock;
+import inraito.openerg.common.block.BlockList;
 import inraito.openerg.util.IndexMapOnFS;
 import inraito.openerg.util.ItemHandlerHelper;
 import li.cil.oc.api.API;
@@ -330,9 +332,11 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         this.setChanged();
     }
 
-    public void onRemove(){
-        BlockPos blockPos = this.getBlockPos();
-        Vector3d pos = new Vector3d(blockPos.getX()+0.5, blockPos.getY()+0.5, blockPos.getZ()+0.5);
-        ItemHandlerHelper.dropContents(this.fsSlot, this.level, pos);
+    public void onRemove(BlockState state){
+        if (state.getBlock() != BlockList.blockController.get()){
+            BlockPos blockPos = this.getBlockPos();
+            Vector3d pos = new Vector3d(blockPos.getX()+0.5, blockPos.getY()+0.5, blockPos.getZ()+0.5);
+            ItemHandlerHelper.dropContents(this.fsSlot, this.level, pos);
+        }
     }
 }

@@ -1,5 +1,6 @@
  {
    "variants": {
-     "": { "model": "openerg:block/block_controller" }
+     "powered=false": { "model": "openerg:block/block_controller" },
+     "powered=true": { "model": "openerg:block/block_controller_powered" }
    }
  }
