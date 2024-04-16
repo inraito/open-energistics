@@ -11,7 +11,7 @@ This mod depends on Applied Energistics 2 and OpenComputers.
 
 ## Tutorial
 [OC Interface](./tutorial/v1.0.0/tutorial.md)  
-[ME Switching Card and Block Controller](./tutorial/v1.1.0/tutorial.md)
+[ME Switching Card and Block Controller](./tutorial/v1.1.1/tutorial.md)
 
 ## License
 * All code
