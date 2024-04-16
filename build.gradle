@@ -23,7 +23,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 version = mod_version
 group = 'inraito.openerg' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'openerg'
+archivesBaseName = 'OpenEnergistics'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
