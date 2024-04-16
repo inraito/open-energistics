@@ -21,7 +21,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '1.0'
+version = mod_version
 group = 'inraito.openerg' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'openerg'
 
@@ -225,6 +225,12 @@ sourceSets {
     }
 }
 
+processResources {
+    inputs.property "version", version
+    filesMatching(['/META-INF/mods.toml']) {
+        expand 'version':version
+    }
+}
 
 tasks.register('interactiveLua', JavaExec).configure{
     //input "$exit$" to exit.
@@ -244,4 +250,12 @@ tasks.register('interactiveLua', JavaExec).configure{
     doLast {
         //TODO:enable it back
     }
+}
+
+tasks.register('renameReobfJar', Copy).configure{
+    from "build/reobfJar"
+    into "build/renamedJar"
+    exclude "log.txt"
+    rename "output.jar", "${archivesBaseName}-${mc_version}-${version}.jar"
+    dependsOn reobfJar
 }
