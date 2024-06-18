@@ -257,5 +257,6 @@ tasks.register('renameReobfJar', Copy).configure{
     into "build/renamedJar"
     exclude "log.txt"
     rename "output.jar", "${archivesBaseName}-${mc_version}-${version}.jar"
+    duplicatesStrategy DuplicatesStrategy.WARN
     dependsOn reobfJar
 }
