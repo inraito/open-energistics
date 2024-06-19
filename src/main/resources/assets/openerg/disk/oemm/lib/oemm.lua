@@ -1,4 +1,4 @@
-local oemm = {}
+local oemm = {} -- Open Energistics Machine Manager
 
 oemm.stateDict = {
     Initializing    = 'init',

@@ -7,11 +7,11 @@ local args = oemm_args
 local instance = {}
 
 local config = {
-    rigorousFreeCheck = true, -- disable it to skip free check, catastrophic if you free machines twice
+    freeCheck = true, -- disable it to skip free check, catastrophic if you free machines twice
 }
 
 local metadata = {
-    state = oemm.stateDict.Running,
+    state = oemm.stateDict.Initializing,
     types = {},
     config = config,
 }
@@ -97,7 +97,7 @@ function instance.free(descriptor)
     local _node = descriptor.node
     local typeTable = metadata.types[typeID]
     -- check whether given descriptor describes a node on the occupied linked list
-    if metadata.config.rigorousFreeCheck then
+    if metadata.config.freeCheck then
         p = _node
         while p.former ~= nil do
             p = p.former
@@ -123,8 +123,11 @@ function instance.free(descriptor)
     return true
 end
 
-oemm_args = instance
+oemm_args1 = oemm
+oemm_args2 = instance
 dofile(args['initScript'])
-oemm_args = nil
+oemm_args1 = nil
+oemm_args2 = nil
+metadata.state = oemm.stateDict.Running
 
 return instance
