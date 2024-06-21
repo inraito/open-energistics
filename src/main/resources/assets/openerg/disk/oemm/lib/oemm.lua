@@ -12,7 +12,7 @@ function oemm.new(initPath)
         error('`initPath` is nil')
     end
     oemm_args = {initScript=initPath}
-    local mmInstance = dofile('lib/oemm/oemm.lua')
+    local mmInstance = dofile('/lib/oemm/oemm.lua')
     oemm_args = nil
     return mmInstance
 end
@@ -24,7 +24,7 @@ function oemm.shutdown(mmInstance)
     elseif state == oemm.stateDict.Closed then
         return true
     else
-        return mmInstance.shutdown()
+        return mmInstance:shutdown()
     end
 end
 

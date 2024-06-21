@@ -8,4 +8,12 @@ function util.size(table)
     return count
 end
 
+function util.keys(_table)
+    local res = {}
+    for k, _ in pairs(_table) do
+        table.insert(res, k)
+    end
+    return res
+end
+
 return util

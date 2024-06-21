@@ -28,7 +28,7 @@ end
 --- Register a machine type.
 ---@param type any any user defined object
 ---@param typeID string unique id
-function instance.registerType(type, typeID)
+function instance:registerType(type, typeID)
     local typeTable = {
         free=node(nil, nil, nil),
         occupied=node(nil, nil, nil),
@@ -37,11 +37,7 @@ function instance.registerType(type, typeID)
     metadata.types[typeID] = typeTable
 end
 
-function instance.listTypes()
-    return metadata.types.keys()
-end
-
-function instance.registerMachine(typeID, machine)
+function instance:registerMachine(typeID, machine)
     if machine == nil then
         error('Machine Empty!')
     end
@@ -51,12 +47,12 @@ function instance.registerMachine(typeID, machine)
     head.former = typeTable.free
 end
 
-function instance.shutdown()
+function instance:shutdown()
     if metadata.state == oemm.stateDict.Initializing then
         error('Illegal State!')
     else
         metadata.state = oemm.stateDict.Closing
-        if util.size(instance.listAllocated()) == 0 then
+        if util.size(instance:listOccupied(nil)) == 0 then
             metadata.state = oemm.stateDict.Closed
             return true
         end
@@ -64,18 +60,63 @@ function instance.shutdown()
     end
 end
 
-function instance.listAllocated()
-    -- TODO
+-------------------------------------------------------------------------
+
+function instance:listTypes()
+    return util.keys(metadata.types)
 end
 
-function instance.alloc(typeID)
+local function linked2List(head)
+    local res = {}
+    local p = head
+    while p.next ~= nil do
+        table.insert(res, p.data)
+        p = p.next
+    end
+    return res
+end
+
+function instance:listFree(typeID)
+    local res = {}
+    if typeID == nil then
+        for _, typeID in ipairs(self:listTypes()) do
+            for _, machine in ipairs(self:listFree(typeID)) do
+                table.insert(res, machine)
+            end
+        end
+    else
+        res = linked2List(metadata.types[typeID].free)
+    end
+    return res
+end
+
+function instance:listOccupied(typeID)
+    local res = {}
+    if typeID == nil then
+        for _, typeID in ipairs(self:listTypes()) do
+            for _, machine in ipairs(self:listOccupied(typeID)) do
+                table.insert(res, machine)
+            end
+        end
+    else
+        res = linked2List(metadata.types[typeID].occupied)
+    end
+    return res
+end
+
+-------------------------------------------------------------------------
+
+---
+---@param typeID string
+---@return (nil, string) | (table, any)
+function instance:alloc(typeID)
     if metadata.state == oemm.stateDict.Running then
         local typeTable = metadata.types[typeID]
         if typeTable.free.data == nil then
             return nil, 'No available machine.'
         end
         -- detach from free linked list
-        local _node = typeTable.free.data
+        local _node = typeTable.free
         typeTable.free = typeTable.free.next
         typeTable.free.former = nil
         -- attach to occupied linked list
@@ -89,7 +130,7 @@ function instance.alloc(typeID)
     end
 end
 
-function instance.free(descriptor)
+function instance:free(descriptor)
     if metadata.state == oemm.stateDict.Closed or metadata.state == oemm.stateDict.Initializing then
         error('Illegal State!')
     end

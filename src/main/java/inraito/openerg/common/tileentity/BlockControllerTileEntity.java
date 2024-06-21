@@ -12,6 +12,7 @@ import li.cil.oc.api.driver.DriverItem;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.Component;
 import li.cil.oc.api.network.EnvironmentHost;
 import li.cil.oc.api.network.Message;
 import li.cil.oc.api.network.Visibility;
@@ -72,12 +73,14 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         
         @Override
         public CompoundNBT serializeNBT() {
+            CompoundNBT nbt = super.serializeNBT();
             ItemStack stack = this.getStackInSlot(0);
             if(!stack.isEmpty()){
                 CompoundNBT tag = DriverFileSystem$.MODULE$.dataTag(stack);
                 BlockControllerTileEntity.this.environment.saveData(tag);
+                nbt.put("disk_map", tag);
             }
-            return super.serializeNBT();
+            return nbt;
         }
 
         @Override
@@ -87,6 +90,10 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
             if(!stack.isEmpty()){
                 BlockControllerTileEntity.this.environment = ((li.cil.oc.server.component.FileSystem) DriverFileSystem$.
                         MODULE$.createEnvironment(stack, BlockControllerTileEntity.this));
+                CompoundNBT tag = ((CompoundNBT) nbt.get("disk_map"));
+                if(tag!=null){
+                    BlockControllerTileEntity.this.environment.loadData(tag);
+                }
             }
         }
 

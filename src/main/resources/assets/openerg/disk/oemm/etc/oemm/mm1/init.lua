@@ -4,3 +4,5 @@
 local oemm = oemm_args1
 local instance = oemm_args2
 
+--- sort of an init code sample
+-- dofile('/etc/oemm/mm1/furnace.lua')

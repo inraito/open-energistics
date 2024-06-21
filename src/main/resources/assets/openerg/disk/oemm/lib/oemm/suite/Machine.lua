@@ -1,4 +1,4 @@
----
+
 local Machine = {}
 
 --- Basically you should use them like this:
@@ -71,16 +71,16 @@ end
 
 ---------------------------------------------------------------------------------------
 
-function Machine:push(card, id, num)
-    self.type:push(card, self, id, num)
+function Machine:push(card, id)
+    return self.type:push(card, self, id)
 end
 
-function Machine:pop(card, id)
-    self.type:pop(card, self, id)
+function Machine:pop(card, id, num)
+    return self.type:pop(card, self, id, num)
 end
 
 function Machine:invoke(id, ...)
-    self.type:invoke(self, id, ...)
+    return self.type:invoke(self, id, ...)
 end
 
 return Machine
