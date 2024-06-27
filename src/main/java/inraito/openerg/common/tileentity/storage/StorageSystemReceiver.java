@@ -34,7 +34,7 @@ public class StorageSystemReceiver {
             case GET_SLOT_NUM:
                 return storage.getSlotNum();
             case PUSH:
-                return storage.push(((Integer) data[1]), ((ItemStack) data[2]));
+                return storage.push(((Integer) data[1]), ((ItemStack) data[2]), ((boolean) data[3]));
             case POP:
                 return storage.pop(((Integer) data[1]), ((Integer) data[2]));
             case CHECK:

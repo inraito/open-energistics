@@ -11,11 +11,13 @@ local dict = {
 }
 module.Status = dict
 
+---@class scheduler
 scheduler = {}
 
 function scheduler:init()
     self.id = 0
     self.coroutines = {}
+    return self
 end
 
 ---
@@ -70,7 +72,7 @@ end
 function module.new()
     local ins = {}
     setmetatable(ins, {__index=scheduler})
-    return ins
+    return ins:init()
 end
 
 return module

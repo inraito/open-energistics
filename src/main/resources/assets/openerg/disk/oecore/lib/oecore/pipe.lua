@@ -1,28 +1,64 @@
+--- Pipe create a virtual passage for items, which has a start and an end.
+--- items in the starting slot will be constantly transferred to ending slot.
+--- This transfer leverage lua's coroutine, yield itself if further transfer
+--- can't happen due to all sorts of reasons.
+
+local coroutine = require('coroutine')
+
 local module = {}
 
 local policy ={
-    Reckless = 'reckless',   --- basically checks nothing, very reckless, but efficient.
+    Reckless = 'reckless',   --- checks nothing, and it won't yield, reckless, but efficient.
 
     Cautious = 'cautious',   --- checks the src and dst before start moving items, and
                              --- if the moving fails it will try to restore the context,
-                             --- undo things it has done.
+                             --- put things in the card back to where they were, yield then.
+
+    Paranoia = 'paranoia',   --- same as cautious, but uses a spill zone if the pipe can't
+                             --- put things back.
 
     Exclusive = 'exclusive', --- meaning the card given to the pipe are exclusively granted
                              --- to it, so leaving items inside the card is acceptable.
 }
 module.policy = policy
 
+---@class pipe
 local pipe = {}
 
-function pipe:init(srcAddr, srcSlot, dstAddr, dstSlot)
-    self.basic = {
-        src = srcAddr,
-        srcSlot = srcSlot,
-        dst = dstAddr,
-        dstSlot = dstSlot
-    }
+local helper = {
+    machine = {
+        pull = function(card, machine, id)
+            return machine:pop(card, id, 1)
+        end,
+        push = function(card, machine, id)
+            return machine:push(card, id)
+        end,
+        peek = function(card, machine, id)
+            return machine:peek(card, id)
+        end
+    },
+    storage = {
+        pull = function(card, addr, slot)
+            return card.push(addr, slot, 1)
+        end,
+        push = function(card, addr, slot)
+            return card.pop(addr, slot)
+        end,
+        peek = function(card, addr, slot)
+            return card.peek(addr, slot)
+        end
+    },
+    arg = function(loc)
+        return loc.machine or loc.addr, loc.id or loc.slot
+    end
+}
+
+function pipe:init(src, dst)
+    self.src = src
+    self.dst = dst
     self._hook = nil
     self._policy = policy.Cautious
+    self._stackSize = 64
 end
 
 function pipe:hook(hook)
@@ -33,14 +69,58 @@ function pipe:policy(policy)
     self._policy = policy
 end
 
+function pipe:stackSize(size)
+    self._stackSize = size
+end
+
+---@param spill table same as `src` and `dst`
+function pipe:goParanoia(spill)
+    self._policy = policy.Paranoia
+    self.spill = spill
+end
+---------------------------------------------------------------------------
 local strategy = {}
 strategy[policy.Reckless] = function(card)
-    --TODO
+    while true do
+        local flag = helper[self.src.type].pull(card, helper.arg(self.src))
+        if flag then
+            helper[self.dst.type].push(card, helper.arg(self.dst))
+        else
+            break --stop when nothing could be transferred
+        end
+    end
 end
+---------------------------------------------------------------------------
+function pipe:transfer(card)
+    helper[self.src.type].pull(card, helper.arg(self.src))
+    helper[self.dst.type].push(card, helper.arg(self.dst))
+end
+
+local function canTransfer(srcItem, dstItem, stackSize)
+    if not dstItem then
+        return true
+    end
+    return srcItem.registry_name == dstItem.registry_name and (1 + dstItem.num <= stackSize)
+end
+
 strategy[policy.Cautious] = function(card)
+    while true do
+        local srcItem = helper[self.src.type].peek(card, helper.arg(self.src))
+        local dstItem = helper[self.dst.type].peek(card, helper.arg(self.dst))
+
+        if not srcItem then
+            -- Stall the pipe and wait for more items to be available
+            coroutine.yield()
+        elseif canTransfer(srcItem, dstItem, self._stackSize) then
+            pipe:transfer(card)
+        end
+    end
+end
+---------------------------------------------------------------------------
+strategy[policy.Exclusive] = function(card)
     --TODO
 end
-strategy[policy.Exclusive] = function(card)
+strategy[policy.Paranoia] = function(card)
     --TODO
 end
 pipe.strategy = strategy
@@ -49,14 +129,18 @@ pipe.strategy = strategy
 --- Due to the
 function pipe:start(scheduler, card)
     scheduler:add(function()
-        self.strategy[self._policy]()
+        self.strategy[self._policy](card)
     end, self._hook)
 end
 
-function module.new(srcAddr, srcSlot, dstAddr, dstSlot)
+---
+---@param src table {type='storage', addr=`addr`, slot=`slot`}
+---                 or {type='machine', machine=`machine`, id = `id`}
+---@param dst table same as `src`
+function module.new(src, dst)
     local ins = {}
     setmetatable(ins, {__index=pipe})
-    ins:init(srcAddr, srcSlot, dstAddr, dstSlot)
+    ins:init(src, dst)
     return ins
 end
 

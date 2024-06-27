@@ -68,6 +68,14 @@ function MachineType:pop(card, machine, id, num)
     return card.push(addr, slot, num)
 end
 
+function MachineType:peek(card, machine, id)
+    if(self.slots[id]==nil) then
+        return nil, 'Illegal Arguments!'
+    end
+    local addr, slot = table.unpack(machine.slots[id])
+    return card.peek(addr, slot)
+end
+
 ---
 ---@param id string identifier of a function, must be unique
 ---@param ext table extra arguments reserved for future extension

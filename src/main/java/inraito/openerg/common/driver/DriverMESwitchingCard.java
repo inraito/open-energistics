@@ -75,7 +75,9 @@ public class DriverMESwitchingCard extends DriverItem {
             super.onMessage(message);
         }
 
-        @Callback(doc="function(addr:string, slot:int, num:int):boolean -- push the given number of items in the give slot of the given storage system into the card, all or none")
+        @Callback(doc=  "function(addr:string, slot:int, num:int):boolean -- try pushing the given number of items" +
+                        " in the give slot of the given storage system into the card, true for stack expands, exact" +
+                        " number should be checked via peekTop subsequently")
         public Object[] push(Context context, Arguments arguments) throws Exception{
             if(this.stack.size()>=MAX_SIZE){
                 return new Object[]{null, "stack is full"};
@@ -141,6 +143,9 @@ public class DriverMESwitchingCard extends DriverItem {
                         CHECK, slot);
                 ItemStack returned = ((ItemStack) this.response.data()[0]).copy();
                 this.response = null;
+                if(returned.isEmpty()){
+                    return new Object[]{null};
+                }
                 return new Object[]{toTable(returned)};
             }catch (Exception e){
                 return new Object[]{null, "failed for unclassified reasons"};

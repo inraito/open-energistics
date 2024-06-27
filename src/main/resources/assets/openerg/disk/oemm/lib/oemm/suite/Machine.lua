@@ -79,6 +79,10 @@ function Machine:pop(card, id, num)
     return self.type:pop(card, self, id, num)
 end
 
+function Machine:peek(card, id)
+    return self.type:peek(card, self, id)
+end
+
 function Machine:invoke(id, ...)
     return self.type:invoke(self, id, ...)
 end

@@ -1,9 +1,11 @@
 local module = {}
 
+---@class event
 local event = {}
 
 function event:setID(id)
     self.id = id
+    return self
 end
 
 function event:getID()
@@ -12,6 +14,7 @@ end
 
 function event:setPayload(payload)
     self.payload = payload
+    return self
 end
 
 function event:getPayload()
