@@ -2,6 +2,7 @@
   "openerg.oc_interface.container.display_name": "OC接口",
 
   "block.openerg.oc_interface": "OC接口",
+  "block.openerg.oe_interface": "OE接口",
   "block.openerg.block_controller": "方块控制器",
 
   "item.openerg.me_switching_card": "ME交换卡",

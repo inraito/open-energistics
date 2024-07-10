@@ -1,7 +1,7 @@
 package inraito.openerg.common.driver;
 
 import inraito.openerg.common.item.ItemList;
-import inraito.openerg.util.NBT2Collection;
+import inraito.openerg.util.nbt.NBT2Collection;
 import li.cil.oc.api.Network;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
@@ -10,15 +10,12 @@ import li.cil.oc.api.network.*;
 import li.cil.oc.api.prefab.AbstractManagedEnvironment;
 import li.cil.oc.api.prefab.DriverItem;
 import li.cil.oc.common.Slot;
-import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.NonNullList;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 

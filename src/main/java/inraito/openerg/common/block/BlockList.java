@@ -13,10 +13,12 @@ public class BlockList {
     }
 
     public static final RegistryObject<OCInterfaceBlock> ocInterface;
+    public static final RegistryObject<OEInterfaceBlock> oeInterface;
     public static final RegistryObject<BlockControllerBlock> blockController;
 
     static{
         ocInterface = BLOCKS.register("oc_interface", OCInterfaceBlock::new);
+        oeInterface = BLOCKS.register("oe_interface", OEInterfaceBlock::new);
         blockController = BLOCKS.register("block_controller", BlockControllerBlock::new);
     }
 

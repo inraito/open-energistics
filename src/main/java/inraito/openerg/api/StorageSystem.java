@@ -11,8 +11,9 @@ import javax.annotation.Nullable;
  */
 public interface StorageSystem {
     /**
-     * Get how many slots this storage system have.
-     * @return number of slots
+     * Get how many slots this storage system have. Not always valid since some storage system
+     * may not be treated as a large, consistent inventory.
+     * @return number of slots or -1 if not applicable
      */
     int getSlotNum();
 

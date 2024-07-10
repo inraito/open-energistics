@@ -14,11 +14,15 @@ public class TileEntityList {
     }
 
     public static final RegistryObject<TileEntityType<OCInterfaceTileEntity>> ocInterfaceTileEntity;
+    public static final RegistryObject<TileEntityType<OEInterfaceTileEntity>> oeInterfaceTileEntity;
     public static final RegistryObject<TileEntityType<BlockControllerTileEntity>> blockControllerTileEntity;
 
     static{
         ocInterfaceTileEntity = TILE_ENTITIES.register("oc_interface_tileentity", () ->
                 TileEntityType.Builder.of(OCInterfaceTileEntity::new, BlockList.ocInterface.get()).build(null));
+
+        oeInterfaceTileEntity = TILE_ENTITIES.register("oe_interface_tileentity", () ->
+                TileEntityType.Builder.of(OEInterfaceTileEntity::new, BlockList.oeInterface.get()).build(null));
 
         blockControllerTileEntity = TILE_ENTITIES.register("block_controller_tileentity", () ->
                 TileEntityType.Builder.of(BlockControllerTileEntity::new, BlockList.blockController.get()).build(null));

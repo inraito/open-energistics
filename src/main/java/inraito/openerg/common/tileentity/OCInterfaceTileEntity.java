@@ -459,6 +459,10 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             return new Object[]{false, "pattern number reach limit"};
         }
         ItemStack pattern = this.configInventory.getStackInSlot(0);
+        if(Api.instance().crafting().decodePattern(pattern, this.level)==null){
+            return new Object[]{false, "pattern not valid"};
+        }
+
         CraftingContext craftingContext = new CraftingContext(message);
         this.craftingPatterns.put(pattern, craftingContext);
         this.aeNode.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.aeNode));

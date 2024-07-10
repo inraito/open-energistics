@@ -33,7 +33,7 @@ public class BlockControllerBlock extends Block {
     public BlockControllerBlock() {
         super(Properties.of(Material.METAL).harvestLevel(1)
                 .harvestTool(ToolType.PICKAXE).strength(3.5F).lightLevel((state)-> 15));
-        this.registerDefaultState(this.stateDefinition.any().setValue(POWERED,Boolean.valueOf(false)));
+        this.registerDefaultState(this.stateDefinition.any().setValue(POWERED,Boolean.FALSE));
     }
 
     @Nullable
