@@ -1,0 +1,6 @@
+ {
+   "variants": {
+     "empty=false": { "model": "openerg:block/oe_interface_powered" },
+     "empty=true": { "model": "openerg:block/oe_interface" }
+   }
+ }

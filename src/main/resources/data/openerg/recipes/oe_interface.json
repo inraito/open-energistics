@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ACA",
+    "DEF",
+    "BGB"
+  ],
+  "key": {
+    "A": {
+      "item": "opencomputers:alu"
+    },
+    "B": {
+      "item": "opencomputers:cable"
+    },
+    "C": {
+      "item": "opencomputers:cu"
+    },
+    "D": {
+      "item": "opencomputers:craftingupgrade"
+    },
+    "E": {
+      "item": "appliedenergistics2:logic_processor"
+    },
+    "F": {
+      "item": "appliedenergistics2:crafting_card"
+    },
+    "G": {
+      "item": "appliedenergistics2:blank_pattern"
+    }
+  },
+  "result": {
+    "item": "openerg:oe_interface",
+    "count": 1
+  }
+}
