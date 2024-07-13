@@ -12,7 +12,7 @@ end
 
 ---
 ---@param id string
----@param callback fun(event:any)
+---@param callback fun(event:event)
 function eventbus:register(id, callback)
     if self.subscriber[id] == nil then
         self.subscriber[id] = {}

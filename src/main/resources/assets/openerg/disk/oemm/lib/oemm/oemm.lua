@@ -1,6 +1,8 @@
 -- creating an instance of an oemm
 local oemm = require('oemm')
 local util = require('oemm.util')
+local coroutine = require('coroutine')
+local queue = require('oemm.util.queue')
 
 local args = oemm_args
 
@@ -14,6 +16,7 @@ local metadata = {
     state = oemm.stateDict.Initializing,
     types = {},
     config = config,
+    waitingQueues = {},
 }
 instance['metadata'] = metadata
 
@@ -161,8 +164,57 @@ function instance:free(descriptor)
     _node.next = typeTable.free
     typeTable.free.former = _node
     typeTable.free = _node
+
+    -- wake sleeping coroutine
+    local coroutineID, scheduler = metadata.dequeue(typeID)
+    if coroutineID ~= nil then
+        scheduler:wake(coroutineID)
+    end
     return true
 end
+
+-------------------------------------------------------------------------
+
+--- Blocking version of alloc.
+---@param typeID string
+---@param scheduler scheduler
+---@return (nil, string) | (table, any)
+function instance:balloc(typeID, scheduler)
+    while true do
+        local descriptor, machine = instance:alloc(typeID)
+        if descriptor ~= nil then
+            return descriptor, machine
+        end
+        local currentID = scheduler:current()
+        metadata.queue(typeID, currentID, scheduler)
+        scheduler:sleep(currentID)
+        coroutine.yield()
+    end
+end
+
+-------------------------------------------------------------------------
+--- Both of these functions are meant to be private, which is why they are
+--- in metadata instead of instance.
+
+function metadata.queue(typeID, coroutineID, scheduler)
+    if metadata.waitingQueues[typeID] == nil then
+        metadata.waitingQueues[typeID] = queue.new()
+    end
+    metadata.waitingQueues[typeID]:queue({coroutineID, scheduler})
+end
+
+function metadata.dequeue(typeID)
+    if metadata.waitingQueues[typeID] == nil then
+        return nil, 'No waiting coroutines.'
+    end
+    local res = metadata.waitingQueues[typeID]:dequeue()
+    if res == nil then
+        return nil, 'No waiting coroutines.'
+    end
+    return res[1], res[2]
+end
+
+-------------------------------------------------------------------------
 
 oemm_args1 = oemm
 oemm_args2 = instance

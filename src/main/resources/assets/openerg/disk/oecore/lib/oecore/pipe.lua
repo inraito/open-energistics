@@ -59,32 +59,46 @@ function pipe:init(src, dst)
     self._hook = nil
     self._policy = policy.Cautious
     self._stackSize = 64
+    self.transferred = 0
+end
+
+function pipe:transferThreshold(threshold)
+    self.threshold = threshold
+    return self
 end
 
 function pipe:hook(hook)
     self._hook = hook
+    return self
 end
 
 function pipe:policy(policy)
     self._policy = policy
+    return self
 end
 
 function pipe:stackSize(size)
     self._stackSize = size
+    return self
 end
 
 ---@param spill table same as `src` and `dst`
 function pipe:goParanoia(spill)
     self._policy = policy.Paranoia
     self.spill = spill
+    return self
 end
 ---------------------------------------------------------------------------
 local strategy = {}
-strategy[policy.Reckless] = function(card)
+strategy[policy.Reckless] = function(self, card)
     while true do
         local flag = helper[self.src.type].pull(card, helper.arg(self.src))
         if flag then
             helper[self.dst.type].push(card, helper.arg(self.dst))
+            self.transferred = self.transferred + 1
+            if self.threshold~=nil and self.transferred >= self.threshold then
+                self:stop()
+            end
         else
             break --stop when nothing could be transferred
         end
@@ -103,7 +117,7 @@ local function canTransfer(srcItem, dstItem, stackSize)
     return srcItem.registry_name == dstItem.registry_name and (1 + dstItem.num <= stackSize)
 end
 
-strategy[policy.Cautious] = function(card)
+strategy[policy.Cautious] = function(self, card)
     while true do
         local srcItem = helper[self.src.type].peek(card, helper.arg(self.src))
         local dstItem = helper[self.dst.type].peek(card, helper.arg(self.dst))
@@ -113,14 +127,18 @@ strategy[policy.Cautious] = function(card)
             coroutine.yield()
         elseif canTransfer(srcItem, dstItem, self._stackSize) then
             pipe:transfer(card)
+            self.transferred = self.transferred + 1
+            if self.threshold~=nil and self.transferred >= self.threshold then
+                self:stop()
+            end
         end
     end
 end
 ---------------------------------------------------------------------------
-strategy[policy.Exclusive] = function(card)
+strategy[policy.Exclusive] = function(self, card)
     --TODO
 end
-strategy[policy.Paranoia] = function(card)
+strategy[policy.Paranoia] = function(self, card)
     --TODO
 end
 pipe.strategy = strategy
@@ -128,9 +146,16 @@ pipe.strategy = strategy
 ---
 --- Due to the
 function pipe:start(scheduler, card)
-    scheduler:add(function()
-        self.strategy[self._policy](card)
+    self.id =  scheduler:add(function()
+        self.strategy[self._policy](self, card)
     end, self._hook)
+end
+
+function pipe:stop()
+    if not self.id then
+        error('pipe not running')
+    end
+    scheduler:remove(self.id)
 end
 
 ---

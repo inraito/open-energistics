@@ -2,7 +2,7 @@
 --- Scheduler of the oe. Be aware that lua uses non-preemptive scheduling,
 --- and coroutines run strictly concurrently.
 ---
-local queue = require('oecore.util.queue')
+local queue = require('assets.openerg.disk.oemm.lib.oemm.util.queue')
 local clib = require('coroutine')
 local module = {}
 local dict = {
@@ -32,12 +32,17 @@ function scheduler:add(coroutine, hook)
     return self.id
 end
 
+function scheduler:remove(id)
+    self.coroutines[id] = nil
+end
+
 function scheduler:schedule()
     while true do
         local toRemove = {}
         for id, coroutine in pairs(self.coroutines) do
             if coroutine.status == Running then
                 local c = coroutine.coroutine
+                self.currentID = id
                 local flag, res = clib.resume(c)
                 if flag then
                     if coroutine.hook ~= nil then
@@ -51,6 +56,12 @@ function scheduler:schedule()
             self.coroutines[id] = nil
         end
     end
+end
+
+---
+---@return string id of current running coroutine
+function scheduler:current()
+    return self.currentID
 end
 
 function scheduler:wake(id)
