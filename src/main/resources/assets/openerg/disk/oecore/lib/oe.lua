@@ -6,6 +6,7 @@ local string = require('string')
 
 local oe = {}
 
+---@class OpenEnergistics
 local openEnergistics = {}
 
 local function initHooks(self)

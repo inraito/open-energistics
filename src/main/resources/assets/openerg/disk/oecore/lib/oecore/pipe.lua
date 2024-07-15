@@ -162,6 +162,7 @@ end
 ---@param src table {type='storage', addr=`addr`, slot=`slot`}
 ---                 or {type='machine', machine=`machine`, id = `id`}
 ---@param dst table same as `src`
+---@return pipe
 function module.new(src, dst)
     local ins = {}
     setmetatable(ins, {__index=pipe})

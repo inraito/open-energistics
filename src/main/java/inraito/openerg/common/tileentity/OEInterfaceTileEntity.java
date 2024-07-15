@@ -43,6 +43,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IGridHost,
         IGridBlock, ICraftingProvider, ITickableTileEntity {
@@ -313,6 +314,9 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
     @Override
     public void provideCrafting(ICraftingProviderHelper craftingTracker) {
         this.cachedDetails.clear();
+        this.craftingPatterns.keySet().stream()
+                .filter(ItemStack::isEmpty).collect(Collectors.toSet())
+                .forEach(this.craftingPatterns::remove);//remove empty stack to improve stability.
         for(ItemStack stack : craftingPatterns.keySet()){
             ICraftingPatternDetails details = Api.instance().crafting().decodePattern(stack, this.level);
             cachedDetails.put(details, stack);
@@ -357,7 +361,8 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
         if(id.isEmpty()){
             throw new IllegalArgumentException();
         }
-        if(this.configInventory.getStackInSlot(0).isEmpty()){
+        ItemStack pattern = this.configInventory.getStackInSlot(0);
+        if(pattern.isEmpty()){
             return new Object[]{false, "config slot empty"};
         }
         if(this.craftingPatterns.containsValue(id)){
@@ -366,11 +371,10 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
         if(craftingPatterns.keySet().size()>=Config.MAXIMUM_PATTERNS.get()){
             return new Object[]{false, "pattern number reach limit"};
         }
-        ItemStack pattern = this.configInventory.getStackInSlot(0);
         if(Api.instance().crafting().decodePattern(pattern, this.level)==null){
             return new Object[]{false, "pattern not valid"};
         }
-        this.craftingPatterns.put(pattern, id);
+        this.craftingPatterns.put(pattern.copy(), id);
         this.aeNode.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.aeNode));
         this.setChanged();
         return new Object[]{true};
@@ -419,7 +423,7 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
         Optional<ItemStack> optional = this.craftingPatterns.keySet().stream().filter(k->craftingPatterns.get(k)
                 .equals(id)).findFirst();
         if(!optional.isPresent()){
-            return new Object[]{false, "massage not registered"};
+            return new Object[]{false, "message not registered"};
         }
         this.craftingPatterns.remove(optional.get());
         this.aeNode.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.aeNode));
@@ -434,6 +438,7 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
         }
         this.sequenceHead = 0;
         this.sequenceTail = 0;
+        this.setChanged();
         return new Object[]{true};
     }
 

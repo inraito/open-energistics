@@ -448,7 +448,8 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         if(message.isEmpty()){
             throw new IllegalArgumentException();
         }
-        if(this.configInventory.getStackInSlot(0).isEmpty()){
+        ItemStack pattern = this.configInventory.getStackInSlot(0);
+        if(pattern.isEmpty()){
             return new Object[]{false, "config slot empty"};
         }
         if(this.craftingPatterns.values().stream()
@@ -458,13 +459,12 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         if(craftingPatterns.keySet().size()>=Config.MAXIMUM_PATTERNS.get()){
             return new Object[]{false, "pattern number reach limit"};
         }
-        ItemStack pattern = this.configInventory.getStackInSlot(0);
         if(Api.instance().crafting().decodePattern(pattern, this.level)==null){
             return new Object[]{false, "pattern not valid"};
         }
 
         CraftingContext craftingContext = new CraftingContext(message);
-        this.craftingPatterns.put(pattern, craftingContext);
+        this.craftingPatterns.put(pattern.copy(), craftingContext);
         this.aeNode.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.aeNode));
         this.setChanged();
         return new Object[]{true};
@@ -516,7 +516,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         Optional<ItemStack> optional = this.craftingPatterns.keySet().stream().filter(k->craftingPatterns.get(k)
                 .message.equals(msg)).findFirst();
         if(!optional.isPresent()){
-            return new Object[]{false, "massage not registered"};
+            return new Object[]{false, "message not registered"};
         }
         this.craftingPatterns.remove(optional.get());
         this.aeNode.getGrid().postEvent(new MENetworkCraftingPatternChange(this, this.aeNode));
