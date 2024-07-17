@@ -24,6 +24,7 @@ end
 --------------------------------------------------
 
 function module.new(id, payload)
+    ---@type event
     local ins = {}
     setmetatable(ins, {__index=event})
     ins:setID(id)

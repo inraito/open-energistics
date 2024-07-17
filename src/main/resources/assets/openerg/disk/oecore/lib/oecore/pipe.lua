@@ -19,6 +19,8 @@ local policy ={
 
     Exclusive = 'exclusive', --- meaning the card given to the pipe are exclusively granted
                              --- to it, so leaving items inside the card is acceptable.
+
+    AEInscriber = 'inscriber'--- used for stupid ae2 inscribers.
 }
 module.policy = policy
 
@@ -117,6 +119,7 @@ local function canTransfer(srcItem, dstItem, stackSize)
     return srcItem.registry_name == dstItem.registry_name and (1 + dstItem.num <= stackSize)
 end
 
+---@param self pipe
 strategy[policy.Cautious] = function(self, card)
     while true do
         local srcItem = helper[self.src.type].peek(card, helper.arg(self.src))
@@ -126,15 +129,48 @@ strategy[policy.Cautious] = function(self, card)
             -- Stall the pipe and wait for more items to be available
             coroutine.yield()
         elseif canTransfer(srcItem, dstItem, self._stackSize) then
-            pipe:transfer(card)
+            self:transfer(card)
             self.transferred = self.transferred + 1
             if self.threshold~=nil and self.transferred >= self.threshold then
-                self:stop()
+                return
             end
         end
     end
 end
 ---------------------------------------------------------------------------
+
+function pipe:goInscriber()
+    self._policy = policy.AEInscriber
+    return self
+end
+
+strategy[policy.AEInscriber] = function(self, card)
+    while true do
+        local srcItem = helper[self.src.type].peek(card, helper.arg(self.src))
+        local dstItem = helper[self.dst.type].peek(card, helper.arg(self.dst))
+
+        if not srcItem then
+            -- Stall the pipe and wait for more items to be available
+            coroutine.yield()
+        elseif canTransfer(srcItem, dstItem, self._stackSize) then
+            -- this is designed for inscriber because:
+            -- `present ~= could be pulled`
+            local flag = helper[self.src.type].pull(card, helper.arg(self.src))
+            if(flag) then
+                helper[self.dst.type].push(card, helper.arg(self.dst))
+                self.transferred = self.transferred + 1
+                if self.threshold~=nil and self.transferred >= self.threshold then
+                    return
+                end
+            else
+                coroutine.yield()
+            end
+        else
+            coroutine.yield()
+        end
+    end
+end
+
 strategy[policy.Exclusive] = function(self, card)
     --TODO
 end
@@ -143,19 +179,16 @@ strategy[policy.Paranoia] = function(self, card)
 end
 pipe.strategy = strategy
 
----
---- Due to the
 function pipe:start(scheduler, card)
-    self.id =  scheduler:add(function()
-        self.strategy[self._policy](self, card)
-    end, self._hook)
-end
-
-function pipe:stop()
-    if not self.id then
-        error('pipe not running')
-    end
-    scheduler:remove(self.id)
+    local c = coroutine.create(function()
+        local flag, err = pcall(function ()
+            self.strategy[self._policy](self, card)
+        end)
+        if not flag then
+            print(err)
+        end
+    end)
+    self.id =  scheduler:add(c, self._hook)
 end
 
 ---

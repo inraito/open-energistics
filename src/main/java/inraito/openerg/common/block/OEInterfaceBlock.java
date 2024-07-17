@@ -60,7 +60,7 @@ public class OEInterfaceBlock extends Block {
     @Override
     public void onRemove(BlockState pState, World pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
         OEInterfaceTileEntity tileEntity = ((OEInterfaceTileEntity) pLevel.getBlockEntity(pPos));
-        tileEntity.onRemove(pState);
+        tileEntity.onRemove(pNewState);
         super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
     }
 

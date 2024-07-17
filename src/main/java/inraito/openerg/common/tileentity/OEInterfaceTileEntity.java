@@ -110,13 +110,15 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
 
         this.storage.clear();
         ListNBT list = ((ListNBT) nbt.get("storage"));
-        List<Object> storage = NBT2Collection.toList(list);
-        storage.forEach(pattern->{
-            List<ItemStack> p = new ArrayList<>();
-            List<CompoundNBT> l = (List<CompoundNBT>) pattern;
-            l.forEach(tag-> p.add(ItemStack.of(tag)));
-            this.storage.add(p);
-        });
+        for (net.minecraft.nbt.INBT inbt : list) {
+            List<ItemStack> node = new ArrayList<>();
+            ListNBT l = (ListNBT) inbt;
+            for (net.minecraft.nbt.INBT value : l) {
+                CompoundNBT n = (CompoundNBT) value;
+                node.add(ItemStack.of(n));
+            }
+            this.storage.add(node);
+        }
 
         loadCraftingPatterns(nbt);
         super.load(state, nbt);
@@ -292,7 +294,7 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
 
     private final Map<ItemStack, String> craftingPatterns = new HashMap<>();
 
-    private int port = 2048;
+    private int port = 11037;
 
     //head and tail are more like a window. only when the first crafting job is finished,
     //will the head be moved forward.
@@ -463,6 +465,9 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
 
     private void tryShiftSequence() {
         while(true){
+            if(this.storage.isEmpty()){
+                break;
+            }
             List<ItemStack> node = this.storage.get(0);
             if(node.stream().allMatch(ItemStack::isEmpty)){
                 this.storage.remove(node);
@@ -477,7 +482,7 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
     public ItemStack pop(int slot, int num) {
         int p = sequenceHead;
         for(List<ItemStack> node : this.storage){
-            if(p<slot && p+node.size()>=slot){
+            if(p<=slot && p+node.size()>slot){
                 int index = slot-p;
                 ItemStack stack = node.get(index);
                 ItemStack res = stack.split(num);
@@ -494,7 +499,7 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
     public ItemStack check(int slot) {
         int p = sequenceHead;
         for(List<ItemStack> node : this.storage){
-            if(p<slot && p+node.size()>=slot){
+            if(p<=slot && p+node.size()>slot){
                 int index = slot-p;
                 return node.get(index);
             }

@@ -21,6 +21,9 @@ function eventbus:register(id, callback)
 end
 
 function eventbus:post(id, event)
+    if self.subscriber[id] == nil then
+        return
+    end
     for _, callback in pairs(self.subscriber[id]) do
         local task = coroutine.create(function()
             callback(event)

@@ -53,6 +53,9 @@ public class DriverMESwitchingCard extends DriverItem {
         public void loadData(CompoundNBT nbt) {
             super.loadData(nbt);
             ListNBT list = ((ListNBT) nbt.get("stack_data"));
+            if(list==null){
+                return;
+            }
             for(INBT inbt : list){
                 CompoundNBT item = ((CompoundNBT) inbt);
                 ItemStack itemStack = ItemStack.of(item);
@@ -150,7 +153,8 @@ public class DriverMESwitchingCard extends DriverItem {
         }
 
         private static Map<String, Object> toTable(ItemStack itemStack){
-            Map<String, Object> stackNBT = NBT2Collection.toMap(itemStack.getOrCreateTag());
+            //copy() to avoid empty NBT which would create stacks that can't merge
+            Map<String, Object> stackNBT = NBT2Collection.toMap(itemStack.copy().getOrCreateTag());
             Map<String, Object> res = new HashMap<>();
             res.put("registry_name", itemStack.getItem().getRegistryName());
             res.put("num", itemStack.getCount());

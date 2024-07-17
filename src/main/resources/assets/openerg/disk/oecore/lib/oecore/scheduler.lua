@@ -2,8 +2,8 @@
 --- Scheduler of the oe. Be aware that lua uses non-preemptive scheduling,
 --- and coroutines run strictly concurrently.
 ---
-local queue = require('assets.openerg.disk.oemm.lib.oemm.util.queue')
 local clib = require('coroutine')
+local os = require('os')
 local module = {}
 local dict = {
     Running = 'running',
@@ -21,7 +21,8 @@ function scheduler:init()
 end
 
 ---
----@param coroutine thread note that only the first return value transferred to hook
+---@param coroutine thread
+---@param hook fun():void pass info through global variables.
 function scheduler:add(coroutine, hook)
     self.id = self.id + 1
     self.coroutines[self.id] = {
@@ -29,6 +30,7 @@ function scheduler:add(coroutine, hook)
         status = dict.Running,
         hook = hook
     }
+    print('Coroutine id=' .. self.id .. ' added.')
     return self.id
 end
 
@@ -40,13 +42,14 @@ function scheduler:schedule()
     while true do
         local toRemove = {}
         for id, coroutine in pairs(self.coroutines) do
-            if coroutine.status == Running then
+            if coroutine.status == dict.Running then
                 local c = coroutine.coroutine
                 self.currentID = id
-                local flag, res = clib.resume(c)
-                if flag then
+                local flag = clib.resume(c)
+                if clib.status(c) == 'dead' then
+                    print('Coroutine id=' .. id .. ' is dead')
                     if coroutine.hook ~= nil then
-                        coroutine.hook(res)
+                        coroutine.hook()
                     end
                     table.insert(toRemove, id)
                 end
@@ -55,6 +58,7 @@ function scheduler:schedule()
         for _, id in pairs(toRemove) do
             self.coroutines[id] = nil
         end
+        os.sleep(0)
     end
 end
 
