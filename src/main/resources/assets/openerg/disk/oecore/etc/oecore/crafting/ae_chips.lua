@@ -1,3 +1,24 @@
+--- This is an example of how to use oe as a ae2's crafting subnet.
+--- As you can see, this file implement 7 recipes of ae2's chips.
+---
+--- But to make it work, you need:
+--- 1.  configure the patterns of these chips to OE Interface manually,
+---     with the ids at the end of this file.
+--- 2.  use the script in /bin/oe_map.lua to init the block controller
+---     and place the AE Inscribers accordingly.
+--- 3.  besides having a computer with the components previously mentioned,
+---     you also need the computer to have:
+---     (a) an ME Switching Card.
+---     (b) a network card.
+--- 4.  replace the string 'stub!' with the right value. currently, there
+---     are two of them, one in this file, and one in /etc/oecore/init.lua
+---
+--- Yes, this script doesn't use machine manager, because the nature of
+--- inscribers allows using it this way: just pushing things in, no need
+--- to bother if there is anyone else using it. Also you can see that
+--- each pipe only transfer 1 item, it's very likely that the result
+--- of a call is not transferred by the pipe it created. But that's
+--- fine, because it is fine, nothing to be worried about.
 
 ---@type OpenEnergistics
 local oe = oecore_args1
@@ -91,6 +112,8 @@ end
 local function runPipe(p)
     p:stackSize(1)
     p:transferThreshold(1)
+    -- AE's inscriber behave very weirdly, so we have to use this strategy.
+    -- You can find details of this strategy here in '/lib/oecore/pipe.lua'
     p:goInscriber()
     p:start(oe.scheduler, component.me_switching_card)
 end

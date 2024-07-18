@@ -1,3 +1,5 @@
+--- This is an example of how to add machines to oemm.
+
 local oemm = oemm_args1
 local instance = oemm_args2
 

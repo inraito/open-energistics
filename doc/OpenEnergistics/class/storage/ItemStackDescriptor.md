@@ -1,5 +1,5 @@
 # ItemStack Descriptor
-This class is used to provides information about an ItemStack,
+This class is used to provide information about an ItemStack,
 typically acquired by [ME Switching Card](../../../component/MESwitchingCard.md).
 
 ```json
@@ -9,3 +9,4 @@ typically acquired by [ME Switching Card](../../../component/MESwitchingCard.md)
     "nbt": "$nbt:CompoundNBT"
 }
 ```
+In which the `nbt` field will be `{}` if the compound tag is null or empty.  

@@ -15,8 +15,8 @@ This mod depends on Applied Energistics 2 and OpenComputers.
 
 ## License
 * All code
-  - (c) 2023, inraito and GlassCabbage  
+  - (c) 2023-2024, inraito and GlassCabbage  
   - [![License](https://img.shields.io/badge/License-MIT-red.svg?style=flat-square)](http://opensource.org/licenses/MIT)
 * Textures
-  - (c) 2023, GlassCabbage
+  - (c) 2023-2024, GlassCabbage
   - [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%203.0-yellow.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc-sa/3.0/)

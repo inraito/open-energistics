@@ -33,8 +33,8 @@ end
 
 --- This coroutine is used to pull events manually so that handlers
 --- could receive the events they needed. The main reason why we need
---- it is that OpenEnergistics occupies the whole CPU, crowd out the
---- openos' signal puller, so we have to do it ourselves.
+--- it is that OpenEnergistics seems to occupy the whole CPU, crowd
+--- out the openos' signal puller, so we have to do it ourselves.
 ---@param self OpenEnergistics
 local function initEventPuller(self)
     ---@type scheduler

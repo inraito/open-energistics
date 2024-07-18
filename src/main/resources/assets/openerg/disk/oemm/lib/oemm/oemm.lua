@@ -1,3 +1,8 @@
+--- Why this machine manager is provided in this script format instead of the standard OOP format
+--- is that when i was writing this, i view it more as an optional, custom object which could be
+--- replaced with user's own implementation or would be adapted massively before being used. So I
+--- thought a script format would be more friendly to the user.
+
 -- creating an instance of an oemm
 local oemm = require('oemm')
 local util = require('oemm.util')

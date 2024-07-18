@@ -1,6 +1,8 @@
 ---This file is used to init the block controller used for the crafting of AE2 chips.
 local c = require('component')
 local b = c.block_controller
+
+---East reserved for cables that connect the block controller to oc computer.
 local direction ={
     'up', --calculation
     'down', --silicon

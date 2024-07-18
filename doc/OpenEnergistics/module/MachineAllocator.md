@@ -3,11 +3,11 @@
 This modules handles the registration and allocation of machine and machine types.
 ### API
 #### Method
-`register_type(machine_type: MachineType)`  
-`register_machine(machine: Machine)`  
-`init()` --end init phase, configuration operation above not accepted after that  
-`alloc(machine_type: MachineType) : machine_descriptor`  
-`alloc(machine_type: MachineType, num) : machine_descriptor[]`
-`free(machine_descriptor) : boolean`
-#### State
-`AllocationTable: MachineDescriptor -> Machine`
+`registerMachineType(type: MachineType, typeID : string)`  
+`registerMachine(typeID: string, machine: Machine)`  
+`listTypes() : List<MachineType>`  
+`listFree(typeID: string) : List<Machine>`  
+`listOccupied(typeID: string) : List<Machine>`  
+`alloc(machine_type: MachineType) : descriptor:MachineDescriptor, machine:Machine`  
+`free(descriptor:MachineDescriptor) : boolean`  
+`balloc(machine_type: MachineType) : descriptor:MachineDescriptor, machine:Machine`

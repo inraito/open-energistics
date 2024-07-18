@@ -14,6 +14,13 @@ local Machine = {}
 --- end
 --- ```
 
+--- Could be sort of more user-friendly if we implement a more
+--- interactive way of configuring the machine. Like we put an
+--- ItemStack marker in the slot and just scan for the marker
+--- to find where the slot is. But i think i won't do that.
+---
+--- The implementation is left as an exercise for the user.
+
 function Machine:new(MachineType)
     local instance = {
         type = MachineType,
