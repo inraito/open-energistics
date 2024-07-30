@@ -57,6 +57,7 @@ function openEnergistics:init()
     self.mainBus = eventbus.new(self.scheduler)
     self.craftingBus = eventbus.craftingBus(self.scheduler, self.mainBus)
     self.port = 11037
+    self.ext = {}
 
     initHooks(self)
     initEventPuller(self)
@@ -64,6 +65,10 @@ end
 
 function openEnergistics:schedule()
     self.scheduler:schedule()
+end
+
+function openEnergistics:extra()
+    return self.ext
 end
 
 function oe.new()

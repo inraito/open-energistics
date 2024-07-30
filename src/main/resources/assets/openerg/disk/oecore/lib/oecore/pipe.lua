@@ -1,5 +1,5 @@
 --- Pipe create a virtual passage for items, which has a start and an end.
---- items in the starting slot will be constantly transferred to ending slot.
+--- Items in the starting slot will be constantly transferred to ending slot.
 --- This transfer leverage lua's coroutine, yield itself if further transfer
 --- can't happen due to all sorts of reasons.
 
@@ -108,6 +108,9 @@ strategy[policy.Reckless] = function(self, card)
 end
 ---------------------------------------------------------------------------
 function pipe:transfer(card)
+    -- This trick of returning multiple values and making them as arguments of the next call
+    -- is only correct if these values are the last arguments. If you use this trick on args
+    -- in the middle, only the first value returned will be passed to the call.
     helper[self.src.type].pull(card, helper.arg(self.src))
     helper[self.dst.type].push(card, helper.arg(self.dst))
 end
@@ -179,6 +182,7 @@ strategy[policy.Paranoia] = function(self, card)
 end
 pipe.strategy = strategy
 
+---@param scheduler scheduler
 function pipe:start(scheduler, card)
     local c = coroutine.create(function()
         local flag, err = pcall(function ()
@@ -188,7 +192,16 @@ function pipe:start(scheduler, card)
             print(err)
         end
     end)
+    self.scheduler = scheduler
     self.id =  scheduler:add(c, self._hook)
+end
+
+function pipe:stop()
+    if self.id then
+        self.scheduler:remove(self.id)
+        return
+    end
+    error("pipe is not running")
 end
 
 ---

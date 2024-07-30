@@ -21,6 +21,8 @@ local Machine = {}
 ---
 --- The implementation is left as an exercise for the user.
 
+-- Machine.new might be more reasonable but it looks ugly.
+-- And don't call other methods on the module.
 function Machine:new(MachineType)
     local instance = {
         type = MachineType,

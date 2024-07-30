@@ -11,6 +11,7 @@ local queue = require('oemm.util.queue')
 
 local args = oemm_args
 
+---@class oemm
 local instance = {}
 
 local config = {
