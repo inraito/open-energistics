@@ -21,40 +21,42 @@ local Machine = require('oemm.suite.Machine')
 -- stone generator
 local stoneGen = MachineType:new()
 stoneGen:slot('out')
-instance:registerType(stoneGen, 'stone_gen')
+mm:registerType(stoneGen, 'stone_gen')
 local ins = Machine:new(stoneGen)
 ins:slot('out', 'stub!', 0)
 ins:assert()
-instance:registerMachine(dict.STONE_GEN, ins)
+mm:registerMachine('stond_gen', ins)
 
 -- grinder
 local grind = MachineType:new()
 grind:slot('in')
 grind:slot('out')
-instance:registerType(grind, 'grinder')
+mm:registerType(grind, 'grinder')
 local ins = Machine:new(grind)
 ins:slot('in', 'stub!', 0)
 ins:slot('out', 'stub!', 0)
 ins:assert()
-instance:registerMachine(dict.GRINDER, ins)
+mm:registerMachine('grinder', ins)
 
 -- washer
 local washer = MachineType:new()
 washer:slot('in')
 washer:slot('out')
-instance:registerType(washer, 'washer')
+mm:registerType(washer, 'washer')
 local ins = Machine:new(washer)
 ins:slot('in', 'stub!', 0)
 ins:slot('out', 'stub!', 0)
 ins:assert()
+mm:registerMachine('washer', ins)
 
 -- output, for instance, an ME interface.
 local output = MachineType:new()
 output:slot('in')
-instance:registerType(output, 'output')
+mm:registerType(output, 'output')
 local ins = Machine:new(output)
 ins:slot('in', 'stub!', 0)
 ins:assert()
+mm:registerMachine('output', ins)
 
 -------------------------------------------------------------------------
 

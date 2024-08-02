@@ -137,6 +137,8 @@ strategy[policy.Cautious] = function(self, card)
             if self.threshold~=nil and self.transferred >= self.threshold then
                 return
             end
+        else
+            coroutine.yield()
         end
     end
 end
