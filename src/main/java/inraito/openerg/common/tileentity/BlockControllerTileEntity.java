@@ -265,6 +265,11 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         super.onMessage(message);
     }
 
+    @Override
+    public void onLoad() {
+
+    }
+
     /*
     ----------------------------------------------OpenComputers Component Callbacks------------------------------------
      */

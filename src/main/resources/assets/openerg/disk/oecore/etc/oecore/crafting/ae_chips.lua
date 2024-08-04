@@ -18,7 +18,7 @@
 --- to bother if there is anyone else using it. Also you can see that
 --- each pipe only transfer 1 item, it's very likely that the result
 --- of a call is not transferred by the pipe it created. But that's
---- fine, because it is fine, nothing to be worried about.
+--- fine, because it is fine, nothing to worry about.
 
 ---@type OpenEnergistics
 local oe = oecore_args1

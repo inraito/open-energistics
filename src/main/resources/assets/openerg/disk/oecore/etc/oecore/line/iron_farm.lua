@@ -1,6 +1,19 @@
 --- This is a simple of iron farm with Create. And since it's a sample,
 --- i'll have the registration of machines attached here rather than in a
 --- separate file, to make running it simpler for users.
+---
+--- To make it work, you need:
+--- 1.  set up the oc computers having a network card and ME switching card, and
+---     install both the oecore and oemm disks.
+--- 2.  attach the machines involved to that computer using block controllers.
+---     number of block controllers is arbitrary, as long as all the slots required
+---     to use the machines are accessible via these controllers.
+--- 3.  map the index of block controllers to adjacent slots, and remember them.
+--- 4.  replace the `stub!`(and slots currently preset to zero if needed) in this
+---     file with the correct address(and index).
+--- 4.  set the oemm variable in /etc/oecore/init.lua to true.
+--- 5.  uncomment the `dofile('./line/iron_farm.lua')` in /etc/oecore/initLine.lua
+
 
 local oe = oecore_args1
 

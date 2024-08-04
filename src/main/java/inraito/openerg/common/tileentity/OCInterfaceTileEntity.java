@@ -159,6 +159,11 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         }
     }
 
+    @Override
+    public void onLoad() {
+
+    }
+
     /*
     -----------------------------------------------------Tick-------------------------------------------------------
      */

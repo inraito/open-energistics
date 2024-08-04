@@ -30,6 +30,23 @@ if oemm then
     oe:extra().mm = mm.new('/etc/oemm/mm1/init.lua')
 end
 
+local ascii_art =[[
+***************************************************
+*  ___                                            *
+* / _ \ _ __   ___ _ __                           *
+*| | | | '_ \ / _ \ '_ \                          *
+*| |_| | |_) |  __/ | | |                         *
+* \___/| .__/ \___|_| |_|                         *
+*      |_|                                        *
+* _____                      _     _   _          *
+*| ____|_ __   ___ _ __ __ _(_)___| |_(_) ___ ___ *
+*|  _| | '_ \ / _ \ '__/ _` | / __| __| |/ __/ __|*
+*| |___| | | |  __/ | | (_| | \__ \ |_| | (__\__ \*
+*|_____|_| |_|\___|_|  \__, |_|___/\__|_|\___|___/*
+*                      |___/                      *
+***************************************************]]
+print(ascii_art)
+
 print('Opening modem port.')
 component.modem.open(port)
 
@@ -45,4 +62,8 @@ dofile('./initLine.lua')
 print('OECore starting to schedule.')
 oe:schedule()
 
-
+--- We don't design any way to stop the OE yet.
+--- So the official way to exit it is to reboot the computer :(
+--- or you could implement it yourself :)
+--- illegal state caused by reboot is a known issue, so it's
+--- recommended that you don't :p

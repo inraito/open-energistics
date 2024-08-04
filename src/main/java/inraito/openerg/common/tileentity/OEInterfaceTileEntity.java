@@ -166,6 +166,11 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
         }
     }
 
+    @Override
+    public void onLoad() {
+
+    }
+
     /*
     -----------------------------------------------------Tick-------------------------------------------------------
      */

@@ -1,5 +1,5 @@
-# version 1.1.0
+# version 1.2.0
 
-* change to scorge loader
-* add ME switching card 
-* add block controller
+* add OE interface
+* add oecore and oemm
+* fix some bugs
