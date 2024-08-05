@@ -21,8 +21,8 @@ public class MeteoriteMixin {
             remap = false)
     protected void addOEDisks(CallbackInfo ci, TileEntity te, InventoryAdaptor ap, int primary){
         double r = Math.random();
-        if(r < 0.1){
-            if(r < 0.05) {
+        if(r < 0.5){
+            if(r < 0.25) {
                 ap.addItems(DiskList.oemm().copy());
             }else{
                 ap.addItems(DiskList.oecore().copy());

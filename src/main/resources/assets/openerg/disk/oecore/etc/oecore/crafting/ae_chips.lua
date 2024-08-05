@@ -5,13 +5,14 @@
 --- 1.  configure the patterns of these chips to OE Interface manually,
 ---     with the ids at the end of this file.
 --- 2.  use the script in /bin/oe_map.lua to init the block controller
----     and place the AE Inscribers accordingly.
+---     and place the AE Inscribers, and the press accordingly.
 --- 3.  besides having a computer with the components previously mentioned,
 ---     you also need the computer to have:
 ---     (a) an ME Switching Card.
 ---     (b) a network card.
 --- 4.  replace the string 'stub!' with the right value. currently, there
 ---     are two of them, one in this file, and one in /etc/oecore/init.lua
+--- 5.  uncomment the `dofile('./crafting/ae_chips.lua')` in /etc/oecore/initCrafting.lua
 ---
 --- Yes, this script doesn't use machine manager, because the nature of
 --- inscribers allows using it this way: just pushing things in, no need

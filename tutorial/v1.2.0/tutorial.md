@@ -1,6 +1,6 @@
 With version 1.2.0, we present OE interface and the lua software used with it:
 oecore and oemm. The former is a block and the two latter are added to game in the
-form of oc disks, found in AE2 meteorite chests. 
+form of oc disks, found in AE2 meteorite chests(and in OC's creative tab rather than our own). 
 
 ---
 
@@ -55,15 +55,25 @@ There are currently two code sample in the disk:
 * /etc/oecore/crafting/ae_chips.lua
 * /etc/oecore/line/iron_farm.lua
 
+---
+
 The first one implement the crafting of AE2 chips, you can find detailed instructions to make it 
 to work inside it. And it only requires OECore to run.  Here's a possible configuration:
 ![](1.png)  
 ![](2.png)  
 ![](3.png)  
+<b>Unexpected behaviour when posting too many tasks is a known issue. I believe the bizarre design
+of AE2 inscriber is more responsible for it than my code. Correct me if I'm wrong.</b> 
+Given that it's just a sample, and it works smoothly if tasks come in steadily, I'll just leave it
+there. 
+
+---
 
 The second one is a virtual assembly line, which uses *Create* machines to produce iron nuggets and
 flint out of nothing. You would need both OECore and OEMM, so make sure you have them installed.
 And, a possible configuration too:
 ![](4.png)  
+
+---
 
 <b>To start OE</b>: first `cd /etc/oecore` then `init` or `lua init.lua`  
