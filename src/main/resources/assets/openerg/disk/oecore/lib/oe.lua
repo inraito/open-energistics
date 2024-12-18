@@ -53,6 +53,7 @@ function openEnergistics:listen(port)
 end
 
 function openEnergistics:init()
+    ---@type scheduler
     self.scheduler = scheduler.new()
     self.mainBus = eventbus.new(self.scheduler)
     self.craftingBus = eventbus.craftingBus(self.scheduler, self.mainBus)

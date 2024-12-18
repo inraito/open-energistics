@@ -11,12 +11,17 @@ local dict = {
 }
 module.Status = dict
 
+---@type boolean verbose or not
+local verbose = false
+
 ---@class scheduler
 scheduler = {}
 
 function scheduler:init()
     self.id = 0
     self.coroutines = {}
+    ---@type number id of current running coroutine
+    self.currentID = nil
     return self
 end
 
@@ -47,7 +52,9 @@ function scheduler:schedule()
                 self.currentID = id
                 local flag = clib.resume(c)
                 if clib.status(c) == 'dead' then
-                    print('Coroutine id=' .. id .. ' is dead')
+                    if verbose then
+                        print('Coroutine id=' .. id .. ' is dead')
+                    end
                     if coroutine.hook ~= nil then
                         coroutine.hook()
                     end
@@ -63,7 +70,7 @@ function scheduler:schedule()
 end
 
 ---
----@return string id of current running coroutine
+---@return number id of current running coroutine
 function scheduler:current()
     return self.currentID
 end
