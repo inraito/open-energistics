@@ -17,7 +17,7 @@ function DisplayState.new(data, maxRows, columns)
         data = data or {},
         currentPage = 1,
         maxRows = maxRows or 10,
-        columns = columns or {"Name", "\tProgress", "\tStatus"},
+        columns = columns or {"id", "Name", "\tProgress"},
         refreshCounter = 0
     }, DisplayState)
 end
@@ -109,7 +109,7 @@ function virtualFetch()
         exampleRefreshCounter = 0
     end
     return {
-        {"Example Progress", display.drawProgressBar(exampleRefreshCounter, 20), "\tprocessing"}
+        {1, "Example Progress", display.drawProgressBar(exampleRefreshCounter, 20)}
     }
 
 end
