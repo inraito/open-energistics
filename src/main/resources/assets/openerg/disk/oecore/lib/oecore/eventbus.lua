@@ -1,5 +1,6 @@
 
 local module = {}
+local verbose = false --debug mode
 
 ---@class eventbus
 local eventbus = {}
@@ -21,6 +22,9 @@ function eventbus:register(id, callback)
 end
 
 function eventbus:post(id, event)
+    if verbose then
+        print('`eventbus:post` with argument(' .. id .. ', ' .. event .. ')')
+    end
     if self.subscriber[id] == nil then
         return
     end

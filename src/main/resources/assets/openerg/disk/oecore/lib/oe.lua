@@ -4,15 +4,15 @@ local event = require('event')
 local oeEvent = require('oecore.event')
 local string = require('string')
 local coroutine = require('coroutine')
+local process_manager = require('oecore.proc.process_manager')
 
 local oe = {}
 
 ---@class OpenEnergistics
 local openEnergistics = {}
 
----@param self OpenEnergistics
-local function initHooks(self)
-    local handler = event.listen('modem_message', function(_, localAddr, remoteAddr, port, distance, msg, sequenceHead, sequenceTail)
+local hooks = {
+    modem_message = function(_, localAddr, remoteAddr, port, distance, msg, sequenceHead, sequenceTail)
         local id = string.match(msg, 'oe_interface:(.*)', 1)
         if port == self.port and id~=nil then
             local payload = {
@@ -22,12 +22,30 @@ local function initHooks(self)
                 sequenceTail = sequenceTail
             }
             local e = oeEvent.new(id, payload)
-            print('Posting event `' .. id .. '`.')
             self.craftingBus:post(id, e)
         end
-    end)
-    if handler == nil then
-        error('Could not register modem_message handler.')
+    end,
+
+    key_up = function(_, keyboardAddr, char, code, playerName)
+        print(_ .. ' ' .. keyboardAddr .. ' ' .. char .. ' ' .. code .. ' ' .. playerName)
+        local payload = {
+            keyboardAddr = keyboardAddr,
+            char = char,
+            code = code,
+            playerName = playerName
+        }
+        local e = oeEvent.new('key_up', payload)
+        self.mainBus:post('key_up', e)
+    end
+}
+
+---@param self OpenEnergistics
+local function initHooks(self)
+    for id, handler in pairs(hooks) do
+        local h = event.listen(id, handler)
+        if h == nil then
+            error('Could not register ' .. id .. ' handler.')
+        end
     end
 end
 
@@ -57,6 +75,7 @@ function openEnergistics:init()
     self.scheduler = scheduler.new()
     self.mainBus = eventbus.new(self.scheduler)
     self.craftingBus = eventbus.craftingBus(self.scheduler, self.mainBus)
+    self.processManager = process_manager.new(self)
     self.port = 11037
     self.ext = {}
 

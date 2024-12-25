@@ -9,10 +9,13 @@ local manager = {}
 ---@param oe OpenEnergistics
 function manager:init(oe)
     self.oe = oe
+    self.processes = {}
 end
 
-function manager:run()
-
+---@param process process
+function manager:run(process)
+    self.processes[process] = true
+    process:run(self.oe.scheduler)
 end
 
 ---@param oe OpenEnergistics

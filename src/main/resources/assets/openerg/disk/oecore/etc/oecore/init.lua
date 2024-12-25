@@ -47,11 +47,24 @@ local ascii_art =[[
 ***************************************************]]
 print(ascii_art)
 
-print('Opening modem port.')
-component.modem.open(port)
+local function null() end
+local function touch(f)
+    return pcall(f)
+end
 
-print('Setting OE Interface port')
-component.oe_interface.setPort(port)
+print('Opening modem port at ' .. port .. '.')
+if touch(function() return component.modem end) then
+    component.modem.open(port)
+else
+    print('No modem found.')
+end
+
+print('Setting OE Interface port at ' .. port .. '.')
+if touch(function() return component.oe_interface end) then
+    component.oe_interface.setPort(port)
+else
+    print('No OE Interface found.')
+end
 
 print('Initializing crafting hooks.')
 dofile('./initCrafting.lua')

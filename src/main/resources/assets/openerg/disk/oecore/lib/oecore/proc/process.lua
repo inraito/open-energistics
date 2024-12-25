@@ -81,6 +81,7 @@ local function p_hook(process, obj)
     end
 end
 
+---not recommended to use this function directly, use manager instead
 ---@param scheduler scheduler
 function process:run(scheduler)
     self.status.running = true
@@ -101,10 +102,11 @@ function process:_finish()
     --TODO
 end
 
-function process:on_finish(cb)
+function process:onFinish(cb)
     table.insert(self.callbacks, cb)
 end
 
+---@return process
 function module.new()
     local ins = {}
     setmetatable(ins, {__index=process})
