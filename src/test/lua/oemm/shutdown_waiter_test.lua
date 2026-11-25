@@ -1,0 +1,17 @@
+local mm = require('oemm').new('/etc/oemm/mm1/init.lua')
+local scheduler = require('oecore.scheduler').new()
+mm:registerType({}, 'furnace')
+mm:registerMachine('furnace', {})
+local lease = mm:alloc('furnace')
+local finished = false
+scheduler:add(coroutine.create(function()
+    local descriptor = mm:balloc('furnace', scheduler)
+    assert(not descriptor)
+    finished = true
+end))
+oc.run(scheduler, 1)
+assert(not mm:shutdown())
+mm:free(lease)
+assert(mm:shutdown())
+oc.run(scheduler, 3)
+assert(finished, 'waiter still sleeping after permanent shutdown')

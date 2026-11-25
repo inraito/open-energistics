@@ -123,7 +123,7 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
     li.cil.oc.server.component.FileSystem environment = null;
 
     @Nullable
-    private FileSystem fs(){
+    FileSystem fs(){
         ItemStack stack = fsSlot.getStackInSlot(0);
         if(stack.isEmpty() || !DriverFileSystem$.MODULE$.worksWith(stack)){
             return null;

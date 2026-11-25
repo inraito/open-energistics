@@ -177,13 +177,13 @@ dependencies {
     implementation fg.deobf("curse.maven:create-328085:3499718")
     implementation fg.deobf("curse.maven:flywheel-486392:3459739")
     implementation "net.minecraftforge:Scorge:3.1.3"
-    compileOnly "org.scala-lang:scala-library:2.13.4"
+    def scalaLibrary = "org.scala-lang:scala-library:2.13.4"
+    compileOnly scalaLibrary
+    testImplementation scalaLibrary
 
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.2'
     testImplementation "org.mockito:mockito-core:3.12.4"
-    testImplementation "org.powermock:powermock-module-junit4:2.0.9"
-    testImplementation "org.powermock:powermock-api-mockito2:2.0.9"
-    testImplementation "org.luaj:luaj-jse:3.0"
+    testImplementation "org.luaj:luaj-jse:3.0.1"
 
     annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 }
@@ -240,24 +240,12 @@ processResources {
     }
 }
 
-tasks.register('interactiveLua', JavaExec).configure{
-    //input "$exit$" to exit.
-    doFirst {
-        println 'interactive lua shell started'
-        //TODO:disable the bloody progress bar.
-        //however i don't find any solutions,
-        //so make sure to use "gradlew interactiveLua --console=plain".
-        //and it's a memo https://github.com/gradle/gradle/issues/10157,
-        //i may check it every other time.
-    }
-    dependsOn compileJava
-    main "inraito.openerg.lua.lua"
-    args "-i"
-    standardInput System.in
-    classpath sourceSets.main.runtimeClasspath, sourceSets.test.runtimeClasspath
-    doLast {
-        //TODO:enable it back
-    }
+test {
+    useJUnit()
+    inputs.dir('src/test/lua')
+    systemProperty 'openerg.luaTests', file('src/test/lua').absolutePath
+    workingDir = file("$buildDir/test-work")
+    doFirst { workingDir.mkdirs() }
 }
 
 tasks.register('renameReobfJar', Copy).configure{

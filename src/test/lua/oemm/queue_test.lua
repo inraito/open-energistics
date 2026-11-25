@@ -1,0 +1,7 @@
+local q = require('oemm.util.queue').new()
+assert(q:isEmpty() and q:dequeue() == nil)
+q:queue('first')
+q:queue('second')
+assert(q:dequeue() == 'first')
+q:queue('third')
+assert(q:dequeue() == 'second' and q:dequeue() == 'third' and q:isEmpty())
