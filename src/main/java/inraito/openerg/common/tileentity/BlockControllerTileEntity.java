@@ -239,7 +239,8 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         Tuple3<Direction, Direction, Integer> tuple = IndexMapOnFS.get(fs(), slot);
         try{
             IItemHandler handler = this.getItemHandler(tuple._1(), tuple._2());
-            return handler.extractItem(tuple._3(), num, false).copy();
+            int count = num == -1 ? handler.getStackInSlot(tuple._3()).getCount() : num;
+            return handler.extractItem(tuple._3(), count, false).copy();
         }catch (Exception e){
             return ItemStack.EMPTY;
         }
@@ -280,11 +281,13 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
         Direction relative = Direction.byName(arguments.checkString(1));
         Direction side = Direction.byName(arguments.checkString(2));
         int slot = arguments.checkInteger(3);
-        Tuple3<Direction, Direction, Integer> tuple = new Tuple3<>(relative, side, slot);
-        if(IndexMapOnFS.containsKey(fs(), index)){
+        FileSystem disk = fs();
+        if (IndexMapOnFS.containsKey(disk, index)) {
             return new Object[]{false};
         }
-        IndexMapOnFS.put(fs(), index, tuple);
+        if (!IndexMapOnFS.put(disk, index, new Tuple3<>(relative, side, slot))) {
+            return new Object[]{false};
+        }
         this.setChanged();
         return new Object[]{true};
     }
@@ -292,10 +295,10 @@ public class BlockControllerTileEntity extends StorageSystemTileEntity
     @Callback(doc="function(index:int):boolean -- unmap the given index in storage system")
     public Object[] unmap(Context context, Arguments arguments) throws Exception{
         int index = arguments.checkInteger(0);
-        if(!IndexMapOnFS.containsKey(fs(), index)){
+        FileSystem disk = fs();
+        if (!IndexMapOnFS.containsKey(disk, index) || !IndexMapOnFS.removeMapping(disk, index)) {
             return new Object[]{false};
         }
-        IndexMapOnFS.remove(fs(), index);
         this.setChanged();
         return new Object[]{true};
     }

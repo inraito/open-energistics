@@ -2,13 +2,13 @@
 --- This is sort of a utility for blocking condition check.
 --- It allows you to block the coroutine until the given condition is met.
 
-local polling
+local polling = {}
 local coroutine = require('coroutine')
 local os = require('os')
 
-poll = {}
+local poll = {}
 function poll:init(ext)
-    for k, v in pairs(ext) do
+    for k, v in pairs(ext or {}) do
         self[k] = v
     end
     self.mod = 1
@@ -53,12 +53,12 @@ function poll:start()
         error('Predicate nil!')
     end
 
-    --i don't think someone would use both of them, so i'll just write it this way.
-    while self.timeSupplier()-self.yieldTime < self.timeThreshold
-            or self.counter~=0
-            or not self.p()
-    do
-        self.yieldTime = self.timeSupplier()
+    while true do
+        local now = self.timeSupplier()
+        if self.counter == 0 and now - self.yieldTime >= self.timeThreshold then
+            if self.p() then return end
+            self.yieldTime = now
+        end
         coroutine.yield()
         self.counter = (self.counter + 1) % self.mod
     end

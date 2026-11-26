@@ -52,6 +52,7 @@ public class DriverMESwitchingCard extends DriverItem {
         @Override
         public void loadData(CompoundNBT nbt) {
             super.loadData(nbt);
+            stack.clear();
             ListNBT list = ((ListNBT) nbt.get("stack_data"));
             if(list==null){
                 return;
@@ -63,10 +64,23 @@ public class DriverMESwitchingCard extends DriverItem {
             }
         }
 
-        private Message response = null;
+        private Message response;
+        private boolean waiting;
+
+        private ItemStack request(String address, Object... data) {
+            Node node = node();
+            waiting = true;
+            try {
+                node.network().sendToAddress(node, address, REQUEST_NAME, data);
+                return ((ItemStack) response.data()[0]).copy();
+            } finally {
+                response = null;
+                waiting = false;
+            }
+        }
         @Override
         public void onMessage(Message message) {
-            if(message.name().equals(RESPONSE_NAME)){
+            if(waiting && RESPONSE_NAME.equals(message.name())){
                 if(this.response!=null){
                     throw new IllegalStateException("Response Override!");
                 }
@@ -86,10 +100,7 @@ public class DriverMESwitchingCard extends DriverItem {
                 String address = arguments.checkString(0);
                 int slot = arguments.checkInteger(1);
                 int num = arguments.checkInteger(2);
-                Node node = this.node();
-                node.network().sendToAddress(node, address, REQUEST_NAME, POP, slot, num);
-                ItemStack popped = ((ItemStack) response.data()[0]).copy();
-                this.response = null;
+                ItemStack popped = request(address, POP, slot, num);
                 if(popped.isEmpty()){
                     return new Object[]{false};
                 }
@@ -108,11 +119,7 @@ public class DriverMESwitchingCard extends DriverItem {
             try {
                 String address = arguments.checkString(0);
                 int slot = arguments.checkInteger(1);
-                Node node = this.node();
-                node.network().sendToAddress(node, address, REQUEST_NAME,
-                        PUSH, slot, this.stack.peek().copy(), true);
-                ItemStack returned = ((ItemStack) this.response.data()[0]).copy();
-                this.response = null;
+                ItemStack returned = request(address, PUSH, slot, this.stack.peek().copy(), true);
                 if(returned.isEmpty()){
                     this.stack.pop();
                     return new Object[]{true};
@@ -138,11 +145,7 @@ public class DriverMESwitchingCard extends DriverItem {
             try {
                 String address = arguments.checkString(0);
                 int slot = arguments.checkInteger(1);
-                Node node = this.node();
-                node.network().sendToAddress(node, address, REQUEST_NAME,
-                        CHECK, slot);
-                ItemStack returned = ((ItemStack) this.response.data()[0]).copy();
-                this.response = null;
+                ItemStack returned = request(address, CHECK, slot);
                 if(returned.isEmpty()){
                     return new Object[]{null};
                 }

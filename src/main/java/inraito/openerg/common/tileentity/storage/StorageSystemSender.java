@@ -2,7 +2,6 @@ package inraito.openerg.common.tileentity.storage;
 
 import inraito.openerg.api.StorageSystem;
 import inraito.openerg.common.tileentity.StorageSystemTileEntity;
-import li.cil.oc.api.network.Environment;
 import li.cil.oc.api.network.Message;
 import li.cil.oc.api.network.Node;
 import net.minecraft.item.ItemStack;
@@ -20,23 +19,35 @@ public class StorageSystemSender implements StorageSystem {
         this.environment = environment;
     }
 
-    private Message response = null;
-    public boolean onMessage(Message message){
-        if(message.name().equals(RESPONSE_NAME)){
-            this.response = message;
+    private Message response;
+    private boolean waiting;
+
+    public boolean onMessage(Message message) {
+        if (waiting && RESPONSE_NAME.equals(message.name()) && address.equals(message.source().address())) {
+            response = message;
             return true;
         }
         return false;
     }
 
+    private Object request(Object... data) {
+        Node node = environment.node();
+        waiting = true;
+        environment.setSender(this);
+        try {
+            node.network().sendToAddress(node, address, REQUEST_NAME, data);
+            return response == null ? null : response.data()[0];
+        } finally {
+            environment.setSender(null);
+            waiting = false;
+            response = null;
+        }
+    }
+
     @Override
     public int getSlotNum() {
         try {
-            Node node = environment.node();
-            environment.setSender(this);
-            node.network().sendToAddress(node, address, REQUEST_NAME,
-                    GET_SLOT_NUM);
-            return ((Integer) response.data()[0]);
+            return (Integer) request(GET_SLOT_NUM);
         }catch (Exception e){
             return 0;
         }
@@ -45,11 +56,8 @@ public class StorageSystemSender implements StorageSystem {
     @Override
     public ItemStack push(int slot, ItemStack itemStack, boolean atomic) {
         try{
-            Node node = environment.node();
-            environment.setSender(this);
-            node.network().sendToAddress(node, address, REQUEST_NAME,
-                    PUSH, slot, itemStack, atomic);
-            return ((ItemStack) response.data()[0]);
+            ItemStack remainder = (ItemStack) request(PUSH, slot, itemStack, atomic);
+            return remainder == null ? itemStack : remainder;
         }catch (Exception e){
             return itemStack;
         }
@@ -58,11 +66,8 @@ public class StorageSystemSender implements StorageSystem {
     @Override
     public ItemStack pop(int slot, int num) {
         try {
-            Node node = environment.node();
-            environment.setSender(this);
-            node.network().sendToAddress(node, address, REQUEST_NAME,
-                    POP, slot, num);
-            return ((ItemStack) response.data()[0]);
+            ItemStack extracted = (ItemStack) request(POP, slot, num);
+            return extracted == null ? ItemStack.EMPTY : extracted;
         }catch (Exception e){
             return ItemStack.EMPTY;
         }
@@ -72,11 +77,7 @@ public class StorageSystemSender implements StorageSystem {
     @Override
     public ItemStack check(int slot) {
         try {
-            Node node = environment.node();
-            environment.setSender(this);
-            node.network().sendToAddress(node, address, REQUEST_NAME,
-                    CHECK, slot);
-            return ((ItemStack) response.data()[0]);
+            return (ItemStack) request(CHECK, slot);
         }catch (Exception e){
             return null;
         }

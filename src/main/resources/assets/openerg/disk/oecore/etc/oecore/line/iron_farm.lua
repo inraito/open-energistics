@@ -38,7 +38,7 @@ mm:registerType(stoneGen, 'stone_gen')
 local ins = Machine:new(stoneGen)
 ins:slot('out', 'stub!', 0)
 ins:assert()
-mm:registerMachine('stond_gen', ins)
+mm:registerMachine('stone_gen', ins)
 
 -- grinder
 local grind = MachineType:new()

@@ -1,6 +1,12 @@
 local mm = require('oemm').new('/etc/oemm/mm1/init.lua')
 local scheduler = require('oecore.scheduler').new()
 mm:registerType({}, 'grinder')
+local cancelled = scheduler:add(coroutine.create(function()
+    mm:balloc('grinder', scheduler)
+end))
+oc.run(scheduler, 1)
+scheduler:remove(cancelled)
+
 local acquired
 scheduler:add(coroutine.create(function()
     local lease, machine = mm:balloc('grinder', scheduler)

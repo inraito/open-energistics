@@ -109,7 +109,7 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
         this.configInventory.deserializeNBT(nbt.getCompound("config_inventory"));
 
         this.storage.clear();
-        ListNBT list = ((ListNBT) nbt.get("storage"));
+        ListNBT list = nbt.getList("storage", 9);
         for (net.minecraft.nbt.INBT inbt : list) {
             List<ItemStack> node = new ArrayList<>();
             ListNBT l = (ListNBT) inbt;
@@ -148,7 +148,9 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
 
     public void onRemove(BlockState state){
         if (state.getBlock() != BlockList.oeInterface.get()) {
-            this.getGridNode(AEPartLocation.INTERNAL).destroy();
+            if (aeNode != null) {
+                aeNode.destroy();
+            }
             BlockPos blockPos = this.getBlockPos();
             Vector3d pos = new Vector3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5);
             ItemHandlerHelper.dropContents(this.configInventory, this.level, pos);
@@ -288,7 +290,9 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
     }
 
     private void loadCraftingPatterns(CompoundNBT nbt){
-        ListNBT list = ((ListNBT) nbt.get("crafting_patterns"));
+        craftingPatterns.clear();
+        cachedDetails.clear();
+        ListNBT list = nbt.getList("crafting_patterns", 10);
         for(int i=0;i<list.size();i++){
             CompoundNBT entry = list.getCompound(i);
             ItemStack stack = ItemStack.of(entry.getCompound("stack"));
@@ -343,7 +347,7 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
         for(int i=0;i<size;i++){
             ItemStack stack = table.getItem(i);
             if(!stack.isEmpty()){
-                node.add(stack);
+                node.add(stack.copy());
             }
         }
         this.storage.add(node);
@@ -490,8 +494,12 @@ public class OEInterfaceTileEntity extends StorageSystemTileEntity implements IG
             if(p<=slot && p+node.size()>slot){
                 int index = slot-p;
                 ItemStack stack = node.get(index);
-                ItemStack res = stack.split(num);
+                int count = num == -1 ? stack.getCount() : num;
+                ItemStack res = stack.split(count);
                 tryShiftSequence();
+                if (!res.isEmpty()) {
+                    setChanged();
+                }
                 return res;
             }
             p += node.size();

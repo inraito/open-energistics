@@ -6,7 +6,24 @@ Run the following command at the repository root with a JDK 8 installation selec
 .\gradlew.bat test
 ```
 
-On Linux or macOS use `./gradlew test`. Gradle also runs the tests as part of `check`. Open `build/reports/tests/test/index.html` for the per-case results and failure traces. The XML reports are under `build/test-results/test`.
+Gradle tests all four combinations of OECore and OEMM in one invocation. Both floppies are packaged in one JAR. Run `.\gradlew.bat test renameReobfJar` to produce the installable mod under `build/renamedJar`. On Linux or macOS use `./gradlew`. The HTML report is under `build/reports/tests/test/index.html` and the XML results are under `build/test-results/test`.
+
+## Maintaining an optional Lua check
+
+Edit the Lua source on the existing `oecore` or `oemm` disk. Prefix each complete optional line with `--@check `, including declarations and state updates that serve only the check. For example, the scheduler contains this line inside `sleep`:
+
+```lua
+    --@check if not self.coroutines[id] then return false end
+```
+
+Use consecutive marked lines for a multiline check. Put the marker in Lua code, outside multiline strings and comments. Gradle expands these comments under `robust/` and replaces each marked line with a blank line under `performance/`. The line numbers match the original source in both editions. Inspect the outputs in `build/resources/main/assets/openerg/disk/<disk>/<edition>/`. The performance test compares every installed Lua script with the source after removing the marked lines.
+
+Put new Lua cases under `src/test/lua/oecore` or `src/test/lua/oemm`. A plain `*_test.lua` runs with all four disk combinations. A suffix of `_performance_test.lua` or `_robust_test.lua` selects the edition of the component named by its directory. The other component is exercised in both editions. JUnit includes both edition names in each case. To run just the two homogeneous suites:
+
+```powershell
+.\gradlew.bat test --tests "*LuaDiskTest*oecore=performance, oemm=performance,*"
+.\gradlew.bat test --tests "*LuaDiskTest*oecore=robust, oemm=robust,*"
+```
 
 ## Java and Scala
 

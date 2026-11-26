@@ -1,0 +1,11 @@
+{
+  label = "oecore",
+  fromDir = "performance",
+  noclobber = {
+    "etc/oecore/init.lua",
+    "etc/oecore/initCrafting.lua",
+    "etc/oecore/initLine.lua",
+    "etc/oecore/line/iron_farm.lua",
+    "etc/oecore/crafting/ae_chips.lua",
+  }
+}

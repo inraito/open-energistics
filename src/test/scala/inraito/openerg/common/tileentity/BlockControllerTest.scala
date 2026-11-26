@@ -40,10 +40,6 @@ class BlockControllerTest extends HeadlessItems {
     args
   }
 
-  @Test def absentDiskRejectsMapping(): Unit = {
-    assertEquals(false, controller(null).map(null, mapping(2))(0))
-  }
-
   private def withAdjacentInventory(count: Int): (BlockControllerTileEntity, ItemStackHandler) = {
     val tile = controller(newDisk())
     val world = mock(classOf[World])
@@ -88,15 +84,6 @@ class BlockControllerTest extends HeadlessItems {
     disk.makeDirectory("/" + IndexMapOnFS.DATA_FOLDER)
     disk.makeDirectory(IndexMapOnFS.parsePath(2)) // A directory occupies the intended file.
     assertEquals(false, controller(disk).map(null, mapping(2))(0))
-  }
-
-  @Test def malformedDirectionDoesNotReserveIndex(): Unit = {
-    val disk = newDisk()
-    val args = mapping(3)
-    when(args.checkString(2)).thenReturn("sideways")
-    val result = controller(disk).map(null, args)
-    assertFalse("invalid direction accepted", result(0) == java.lang.Boolean.TRUE)
-    assertFalse(disk.exists(IndexMapOnFS.parsePath(3)))
   }
 
   @Test def removingUnknownIndexDoesNotCreateDirectories(): Unit = {

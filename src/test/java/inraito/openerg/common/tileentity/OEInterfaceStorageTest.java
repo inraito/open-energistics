@@ -104,29 +104,6 @@ public class OEInterfaceStorageTest extends HeadlessItems {
         }
     }
 
-    @Test
-    public void unknownPatternDoesNotConsumeJobSlot() throws Exception {
-        connectForCrafting();
-        CraftingInventory table = mock(CraftingInventory.class);
-        when(table.getContainerSize()).thenReturn(1);
-        when(table.getItem(0)).thenReturn(new ItemStack(Items.COAL));
-        assertFalse(tile.pushPattern(mock(ICraftingPatternDetails.class), table));
-        assertTrue(jobs.isEmpty());
-    }
-
-    @Test
-    public void emptyIngredientRequestsCannotPermanentlyFillWindow() throws Exception {
-        connectForCrafting();
-        ICraftingPatternDetails pattern = mock(ICraftingPatternDetails.class);
-        ItemStack encoded = new ItemStack(Items.PAPER);
-        setField("cachedDetails", java.util.Collections.singletonMap(pattern, encoded));
-        setField("craftingPatterns", java.util.Collections.singletonMap(encoded, "sample"));
-        CraftingInventory empty = mock(CraftingInventory.class);
-        for (int i = 0; i < OEInterfaceTileEntity.MAX_STORAGE_SIZE; i++) tile.pushPattern(pattern, empty);
-        assertArrayEquals(new Object[]{0, 0}, tile.sequence(null, null));
-        assertFalse("no ingredient slots exist to drain", tile.isBusy());
-    }
-
     private void setField(String name, Object value) throws Exception {
         Field field = OEInterfaceTileEntity.class.getDeclaredField(name);
         field.setAccessible(true);

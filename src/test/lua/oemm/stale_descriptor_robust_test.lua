@@ -1,0 +1,13 @@
+local mm = require('oemm').new('/etc/oemm/mm1/init.lua')
+mm:registerType({}, 'furnace')
+local machine = {}
+mm:registerMachine('furnace', machine)
+local old = mm:alloc('furnace')
+assert(mm:free(old))
+local current = mm:alloc('furnace')
+assert(not pcall(function() mm:free(old) end))
+assert(#mm:listFree('furnace') == 0 and mm:listOccupied('furnace')[1] == machine)
+local other = require('oemm').new('/etc/oemm/mm1/init.lua')
+other:registerType({}, 'furnace')
+assert(not pcall(function() other:free(current) end))
+assert(mm:free(current))

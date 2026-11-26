@@ -143,12 +143,16 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     }
 
     public void onRemove(){
-        this.getGridNode(AEPartLocation.INTERNAL).destroy();
+        if (aeNode != null) {
+            aeNode.destroy();
+        }
         //drop contents
         BlockPos blockPos = this.getBlockPos();
         Vector3d pos = new Vector3d(blockPos.getX()+0.5, blockPos.getY()+0.5, blockPos.getZ()+0.5);
         ItemHandlerHelper.dropContents(this.configInventory, this.level, pos);
         ItemHandlerHelper.dropContents(this.storageInventory, this.level, pos);
+        waitingToSend.forEach(stack -> ItemHandlerHelper.dropItemStack(this.level, pos, stack));
+        waitingToSend.clear();
     }
 
     @Override
@@ -181,8 +185,12 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             for(ItemStack stack : this.waitingToSend){
                 ItemStack s = stack.copy();
                 for(int i=0;i<this.storageInventory.getSlots();i++){
+                    int before = s.getCount();
                     s = this.storageInventory.insertItem(i, s, false);
-                    if(stack.isEmpty()){
+                    if (s.getCount() != before) {
+                        setChanged();
+                    }
+                    if(s.isEmpty()){
                         break;
                     }
                 }
@@ -194,6 +202,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
                 this.broadcastMessage(this.pendingContext);
                 this.pendingContext = new CraftingContext();
                 this.waitingToSend.clear();
+                setChanged();
             }else{
                 this.waitingToSend.clear();
                 this.waitingToSend.addAll(pending);
@@ -322,7 +331,9 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     }
 
     private void loadCraftingPatterns(CompoundNBT nbt){
-        ListNBT list = ((ListNBT) nbt.get("crafting_patterns"));
+        craftingPatterns.clear();
+        cachedDetails.clear();
+        ListNBT list = nbt.getList("crafting_patterns", 10);
         for(int i=0;i<list.size();i++){
             CompoundNBT entry = list.getCompound(i);
             ItemStack stack = ItemStack.of(entry.getCompound("stack"));
@@ -361,9 +372,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         @Override
         public void deserializeNBT(CompoundNBT nbt) {
             this.empty = nbt.getBoolean("empty");
-            if(!this.empty){
-                this.message = nbt.getString("message");
-            }
+            this.message = this.empty ? null : nbt.getString("message");
         }
 
         @Override
@@ -371,8 +380,7 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             CraftingContext that = (CraftingContext) o;
-            if(this.empty&&that.empty) return true;
-            return Objects.equals(message, that.message);
+            return empty == that.empty && Objects.equals(message, that.message);
         }
 
         @Override
@@ -413,13 +421,16 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
     }
 
     private void loadPending(CompoundNBT nbt){
-        ListNBT waitingStacks = ((ListNBT) nbt.get("waiting_stacks"));
+        waitingToSend.clear();
+        ListNBT waitingStacks = nbt.getList("waiting_stacks", 10);
         for(int i=0;i<waitingStacks.size();i++){
             ItemStack stack = ItemStack.of(waitingStacks.getCompound(i));
             this.waitingToSend.add(stack);
         }
         this.pendingContext = new CraftingContext();
-        this.pendingContext.deserializeNBT(nbt.getCompound("pending_context"));
+        if (nbt.contains("pending_context")) {
+            this.pendingContext.deserializeNBT(nbt.getCompound("pending_context"));
+        }
     }
 
     @Override
@@ -432,9 +443,10 @@ public class OCInterfaceTileEntity extends TileEntityEnvironment implements IGri
         if(!remaining.isEmpty()){
             this.waitingToSend.addAll(remaining);
             this.pendingContext = context;
-            return true;
+        } else {
+            this.broadcastMessage(context);
         }
-        this.broadcastMessage(context);
+        this.setChanged();
         return true;
     }
 

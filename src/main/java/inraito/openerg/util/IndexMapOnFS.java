@@ -70,8 +70,7 @@ public class IndexMapOnFS {
             if(fs.exists(path)){
                 return fs.isDirectory(path);
             }else{
-                fs.makeDirectory(path);
-                return true;
+                return fs.makeDirectory(path);
             }
         }
         return false;
@@ -85,10 +84,13 @@ public class IndexMapOnFS {
         }
         try {
             Handle handle = fs.getHandle(fs.open(path, Mode.Write));
-            JsonObject obj = toJson(value);
-            byte[] data = obj.toString().getBytes(StandardCharsets.UTF_8);
-            handle.write(data);
-            handle.close();
+            try {
+                JsonObject obj = toJson(value);
+                byte[] data = obj.toString().getBytes(StandardCharsets.UTF_8);
+                handle.write(data);
+            } finally {
+                handle.close();
+            }
             return true;
         } catch (IOException | RuntimeException e) {
             return false;
@@ -101,22 +103,21 @@ public class IndexMapOnFS {
     }
 
     public static void remove(FileSystem fs, int key){
+        removeMapping(fs, key);
+    }
+
+    public static boolean removeMapping(FileSystem fs, int key) {
         String path = parsePath(key);
-        int index = path.lastIndexOf(DELIMITER);
-        if(!checkDirectory(fs, path.substring(0, index)) || fs.isDirectory(path) || !fs.exists(path)){
-            return;
-        }
-        fs.delete(path);
+        return fs.exists(path) && !fs.isDirectory(path) && fs.delete(path);
     }
 
     private static void delete(FileSystem fs, String path){
-        if(!fs.isDirectory(path)){
-            fs.delete(path);
-            return;
+        if (fs.isDirectory(path)) {
+            for (String name : fs.list(path)) {
+                delete(fs, path + DELIMITER + name);
+            }
         }
-        for(String name : fs.list(path)){
-            delete(fs, path + DELIMITER + name);
-        }
+        fs.delete(path);
     }
 
     public static void clear(FileSystem fs){

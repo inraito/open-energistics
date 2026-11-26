@@ -23,6 +23,19 @@ Disclaimer: Neither the java code nor the lua code has been rigorously tested, a
 held responsible for any damages caused by the use of this mod.
 </b>
 
+## Installing OECore and OEMM in OpenOS
+
+The mod adds OECore and OEMM floppies and each floppy offers a performance edition and a robust edition. Insert the matching floppy and run the OpenOS command for the edition you want. For example, to combine a performance scheduler with checked machine handles:
+
+```sh
+install oecore --fromDir=performance
+install oemm --fromDir=robust
+```
+
+You can choose either edition for either component. Omitting `--fromDir` installs the performance edition. To switch later, install the other edition from the same floppy onto the same OpenOS drive, then restart the OC computer to reload its Lua modules. The installer preserves existing configuration and example scripts under `/etc/oecore` and `/etc/oemm`.
+
+See the [source annotations and test commands](./doc/testing/UnitTests.md).
+
 ## Tutorial
 [OC Interface](./tutorial/v1.0.0/tutorial.md)  
 [ME Switching Card and Block Controller](./tutorial/v1.1.1/tutorial.md)  

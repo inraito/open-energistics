@@ -15,7 +15,7 @@ local args = oemm_args
 local instance = {}
 
 local config = {
-    freeCheck = true, -- disable it to skip free check, catastrophic if you free machines twice
+    --@check freeCheck = true,
 }
 
 local metadata = {
@@ -41,9 +41,19 @@ function instance:registerType(type, typeID)
     local typeTable = {
         free=node(nil, nil, nil),
         occupied=node(nil, nil, nil),
+        --@check allocations = {},
         type = type
     }
     metadata.types[typeID] = typeTable
+end
+
+local function wakeNext(typeID)
+    local id, scheduler = metadata.dequeue(typeID)
+    while id do
+        if scheduler:wake(id) then return true end
+        id, scheduler = metadata.dequeue(typeID)
+    end
+    return false
 end
 
 function instance:registerMachine(typeID, machine)
@@ -54,6 +64,7 @@ function instance:registerMachine(typeID, machine)
     local head = typeTable.free
     typeTable.free = node(nil, head, machine)
     head.former = typeTable.free
+    wakeNext(typeID)
 end
 
 function instance:shutdown()
@@ -61,6 +72,9 @@ function instance:shutdown()
         error('Illegal State!')
     else
         metadata.state = oemm.stateDict.Closing
+        for typeID in pairs(metadata.waitingQueues) do
+            while wakeNext(typeID) do end
+        end
         if util.size(instance:listOccupied(nil)) == 0 then
             metadata.state = oemm.stateDict.Closed
             return true
@@ -133,7 +147,9 @@ function instance:alloc(typeID)
         typeTable.occupied.former = _node
         typeTable.occupied = _node
         -- return machine
-        return {id=typeID, node=_node}, _node.data
+        local descriptor = {id=typeID, node=_node}
+        --@check typeTable.allocations[_node] = descriptor
+        return descriptor, _node.data
     else
         return nil, 'Allocating Disabled!'
     end
@@ -146,16 +162,10 @@ function instance:free(descriptor)
     local typeID = descriptor.id
     local _node = descriptor.node
     local typeTable = metadata.types[typeID]
-    -- check whether given descriptor describes a node on the occupied linked list
-    if metadata.config.freeCheck then
-        p = _node
-        while p.former ~= nil do
-            p = p.former
-        end
-        if p~=typeTable.occupied then
-            error('Illegal Argument!')
-        end
-    end
+    --@check if metadata.config.freeCheck and (not typeTable or typeTable.allocations[_node] ~= descriptor) then
+    --@check     error('Invalid or expired machine descriptor')
+    --@check end
+    --@check typeTable.allocations[_node] = nil
 
     -- detach the node to free from occupied linked list
     if _node == typeTable.occupied then
@@ -167,15 +177,13 @@ function instance:free(descriptor)
     end
 
     -- attach the node to free linked list
+    _node.former = nil
     _node.next = typeTable.free
     typeTable.free.former = _node
     typeTable.free = _node
 
     -- wake sleeping coroutine
-    local coroutineID, scheduler = metadata.dequeue(typeID)
-    if coroutineID ~= nil then
-        scheduler:wake(coroutineID)
-    end
+    wakeNext(typeID)
     return true
 end
 
@@ -188,7 +196,7 @@ end
 function instance:balloc(typeID, scheduler)
     while true do
         local descriptor, machine = instance:alloc(typeID)
-        if descriptor ~= nil then
+        if descriptor ~= nil or metadata.state ~= oemm.stateDict.Running then
             return descriptor, machine
         end
         local currentID = scheduler:current()

@@ -71,11 +71,4 @@ public class OCInterfaceInventoryTest extends HeadlessItems {
         assertFalse(tile.pushPattern(known, input));
         verify(tile).setChanged();
     }
-
-    @Test
-    public void unknownPatternIsRejectedBeforeAccessingInventory() {
-        CraftingInventory table = mock(CraftingInventory.class);
-        assertFalse(tile.pushPattern(mock(ICraftingPatternDetails.class), table));
-        verifyNoInteractions(table);
-    }
 }

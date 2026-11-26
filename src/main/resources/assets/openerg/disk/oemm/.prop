@@ -1,0 +1,8 @@
+{
+  label = "oemm",
+  fromDir = "performance",
+  noclobber = {
+    "etc/oemm/mm1/init.lua",
+    "etc/oemm/mm1/furnace.lua",
+  }
+}

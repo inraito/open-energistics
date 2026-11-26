@@ -13,8 +13,9 @@ local openEnergistics = {}
 ---@param self OpenEnergistics
 local function initHooks(self)
     local handler = event.listen('modem_message', function(_, localAddr, remoteAddr, port, distance, msg, sequenceHead, sequenceTail)
-        local id = string.match(msg, 'oe_interface:(.*)', 1)
-        if port == self.port and id~=nil then
+        if port ~= self.port or type(msg) ~= 'string' then return end
+        local id = string.match(msg, '^oe_interface:(.+)$')
+        if id then
             local payload = {
                 localAddr = localAddr,
                 remoteAddr = remoteAddr,

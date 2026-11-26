@@ -12,7 +12,7 @@ local dict = {
 module.Status = dict
 
 ---@class scheduler
-scheduler = {}
+local scheduler = {}
 
 function scheduler:init()
     self.id = 0
@@ -45,10 +45,13 @@ function scheduler:schedule()
             if coroutine.status == dict.Running then
                 local c = coroutine.coroutine
                 self.currentID = id
-                local flag = clib.resume(c)
+                local ok, reason = clib.resume(c)
+                if not ok then
+                    print('Coroutine id=' .. id .. ' failed: ' .. tostring(reason))
+                end
                 if clib.status(c) == 'dead' then
                     print('Coroutine id=' .. id .. ' is dead')
-                    if coroutine.hook ~= nil then
+                    if ok and coroutine.hook ~= nil then
                         coroutine.hook()
                     end
                     table.insert(toRemove, id)
@@ -69,7 +72,7 @@ function scheduler:current()
 end
 
 function scheduler:wake(id)
-    if self.coroutines[id].status ~= dict.Waiting then
+    if not self.coroutines[id] or self.coroutines[id].status ~= dict.Waiting then
         return false
     end
     self.coroutines[id].status = dict.Running
@@ -77,6 +80,7 @@ function scheduler:wake(id)
 end
 
 function scheduler:sleep(id)
+    --@check if not self.coroutines[id] then return false end
     if self.coroutines[id].status ~= dict.Running then
         return false
     end

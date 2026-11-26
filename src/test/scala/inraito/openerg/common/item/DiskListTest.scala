@@ -45,8 +45,9 @@ class DiskListTest {
     for ((id, expected, library, init) <- disks) {
       val location = DiskList.diskLocation(id)
       assertEquals(expected, location.toString)
-      for (file <- Seq(library, init)) {
-        val path = s"/assets/${location.getNamespace}/${location.getPath}/$file"
+      assertNotNull(getClass.getResource(s"/assets/${location.getNamespace}/${location.getPath}/.prop"))
+      for (edition <- Seq("performance", "robust"); file <- Seq(library, init)) {
+        val path = s"/assets/${location.getNamespace}/${location.getPath}/$edition/$file"
         assertNotNull(path, getClass.getResource(path))
       }
     }

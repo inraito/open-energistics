@@ -233,7 +233,31 @@ sourceSets {
     }
 }
 
+def diskAssets = 'assets/openerg/disk'
+def disks = ['oecore', 'oemm']
+disks.each { disk -> sourceSets.main.resources.exclude("${diskAssets}/${disk}/**") }
 processResources {
+    filteringCharset = 'UTF-8'
+    disks.each { disk ->
+        def source = file("src/main/resources/${diskAssets}/${disk}")
+        from(source) {
+            include '.prop'
+            into "${diskAssets}/${disk}"
+        }
+        ['performance', 'robust'].each { edition ->
+            from(source) {
+                exclude '.prop'
+                into "${diskAssets}/${disk}/${edition}"
+                filesMatching('**/*.lua') {
+                    filter { String line ->
+                        def check = line =~ /^(\s*)--@check (.*)$/
+                        if (!check.matches()) return line
+                        return edition == 'robust' ? check.group(1) + check.group(2) : ''
+                    }
+                }
+            }
+        }
+    }
     inputs.property "version", version
     filesMatching(['/META-INF/mods.toml']) {
         expand 'version':version
@@ -242,6 +266,8 @@ processResources {
 
 test {
     useJUnit()
+    systemProperty 'openerg.disks', file('src/main/resources/assets/openerg/disk').absolutePath
+    inputs.dir('src/main/resources/assets/openerg/disk')
     inputs.dir('src/test/lua')
     systemProperty 'openerg.luaTests', file('src/test/lua').absolutePath
     workingDir = file("$buildDir/test-work")
@@ -249,8 +275,8 @@ test {
 }
 
 tasks.register('renameReobfJar', Copy).configure{
-    from "build/reobfJar"
-    into "build/renamedJar"
+    from "$buildDir/reobfJar"
+    into "$buildDir/renamedJar"
     exclude "log.txt"
     rename "output.jar", "${archivesBaseName}-${mc_version}-${version}.jar"
     duplicatesStrategy DuplicatesStrategy.WARN

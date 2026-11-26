@@ -38,6 +38,14 @@ public class NBT2Collection {
             return ((IntNBT) t).getAsInt();
         }else if(t instanceof FloatNBT){
             return ((FloatNBT) t).getAsDouble();
+        }else if(t instanceof NumberNBT){
+            return ((NumberNBT) t).getAsNumber();
+        }else if(t instanceof ByteArrayNBT){
+            return ((ByteArrayNBT) t).getAsByteArray();
+        }else if(t instanceof IntArrayNBT){
+            return ((IntArrayNBT) t).getAsIntArray();
+        }else if(t instanceof LongArrayNBT){
+            return ((LongArrayNBT) t).getAsLongArray();
         }else if(t instanceof ListNBT){
             return toList(((ListNBT) t));
         }

@@ -91,107 +91,75 @@ function pipe:goParanoia(spill)
     return self
 end
 ---------------------------------------------------------------------------
-local strategy = {}
-strategy[policy.Reckless] = function(self, card)
-    while true do
-        local flag = helper[self.src.type].pull(card, helper.arg(self.src))
-        if flag then
-            helper[self.dst.type].push(card, helper.arg(self.dst))
-            self.transferred = self.transferred + 1
-            if self.threshold~=nil and self.transferred >= self.threshold then
-                self:stop()
-            end
-        else
-            break --stop when nothing could be transferred
-        end
-    end
+-- A refused item can remain on the card across scheduler passes. Only the
+-- pipe that pulled it may retry that delivery.
+local pending = {}
+
+local function push(card, location)
+    return helper[location.type].push(card, helper.arg(location))
 end
----------------------------------------------------------------------------
+
 function pipe:transfer(card)
-    -- This trick of returning multiple values and making them as arguments of the next call
-    -- is only correct if these values are the last arguments. If you use this trick on args
-    -- in the middle, only the first value returned will be passed to the call.
-    helper[self.src.type].pull(card, helper.arg(self.src))
-    helper[self.dst.type].push(card, helper.arg(self.dst))
-end
-
-local function canTransfer(srcItem, dstItem, stackSize)
-    if not dstItem then
-        return true
+    local key = card.address or card
+    if pending[key] and pending[key] ~= self then
+        return false
     end
-    return srcItem.registry_name == dstItem.registry_name and (1 + dstItem.num <= stackSize)
-end
-
----@param self pipe
-strategy[policy.Cautious] = function(self, card)
-    while true do
-        local srcItem = helper[self.src.type].peek(card, helper.arg(self.src))
-        local dstItem = helper[self.dst.type].peek(card, helper.arg(self.dst))
-
-        if not srcItem then
-            -- Stall the pipe and wait for more items to be available
-            coroutine.yield()
-        elseif canTransfer(srcItem, dstItem, self._stackSize) then
-            self:transfer(card)
-            self.transferred = self.transferred + 1
-            if self.threshold~=nil and self.transferred >= self.threshold then
-                return
-            end
-        else
-            coroutine.yield()
+    if not pending[key] then
+        if not helper[self.src.type].pull(card, helper.arg(self.src)) then
+            return false
         end
+        pending[key] = self
     end
+
+    local delivered = push(card, self.dst)
+    if delivered or (self._policy ~= policy.Exclusive and push(card, self.src))
+            or (self.spill and self._policy == policy.Paranoia and push(card, self.spill)) then
+        pending[key] = nil
+    end
+    return delivered
 end
----------------------------------------------------------------------------
+
+local function canTransfer(self, card)
+    local src = helper[self.src.type].peek(card, helper.arg(self.src))
+    if not src then return false end
+    local dst = helper[self.dst.type].peek(card, helper.arg(self.dst))
+    return not dst or (src.registry_name == dst.registry_name and dst.num < self._stackSize)
+end
 
 function pipe:goInscriber()
     self._policy = policy.AEInscriber
     return self
 end
 
-strategy[policy.AEInscriber] = function(self, card)
-    while true do
-        local srcItem = helper[self.src.type].peek(card, helper.arg(self.src))
-        local dstItem = helper[self.dst.type].peek(card, helper.arg(self.dst))
-
-        if not srcItem then
-            -- Stall the pipe and wait for more items to be available
-            coroutine.yield()
-        elseif canTransfer(srcItem, dstItem, self._stackSize) then
-            -- this is designed for inscriber because:
-            -- `present ~= could be pulled`
-            local flag = helper[self.src.type].pull(card, helper.arg(self.src))
-            if(flag) then
-                helper[self.dst.type].push(card, helper.arg(self.dst))
-                self.transferred = self.transferred + 1
-                if self.threshold~=nil and self.transferred >= self.threshold then
-                    return
-                end
-            else
-                coroutine.yield()
-            end
+local function run(self, card)
+    local key = card.address or card
+    local reckless = self._policy == policy.Reckless
+    while not self.threshold or self.transferred < self.threshold do
+        if (pending[key] == self or reckless or canTransfer(self, card)) and self:transfer(card) then
+            self.transferred = self.transferred + 1
+        elseif reckless and not pending[key] then
+            return
         else
             coroutine.yield()
         end
     end
 end
 
-strategy[policy.Exclusive] = function(self, card)
-    --TODO
-end
-strategy[policy.Paranoia] = function(self, card)
-    --TODO
+local strategy = {}
+for _, name in pairs(policy) do
+    strategy[name] = run
 end
 pipe.strategy = strategy
 
 ---@param scheduler scheduler
 function pipe:start(scheduler, card)
+    self.card = card
     local c = coroutine.create(function()
-        local flag, err = pcall(function ()
-            self.strategy[self._policy](self, card)
-        end)
-        if not flag then
-            print(err)
+        local ok, reason = pcall(self.strategy[self._policy], self, card)
+        if not ok then
+            local key = card.address or card
+            if pending[key] == self then pending[key] = nil end
+            error(reason)
         end
     end)
     self.scheduler = scheduler
@@ -201,6 +169,12 @@ end
 function pipe:stop()
     if self.id then
         self.scheduler:remove(self.id)
+        local key = self.card.address or self.card
+        if pending[key] == self then
+            pending[key] = nil
+            print('Pipe stopped with an undelivered item on the switching card.')
+        end
+        self.id = nil
         return
     end
     error("pipe is not running")
